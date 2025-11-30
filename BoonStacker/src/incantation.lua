@@ -54,3 +54,42 @@ Incantations.addIncantation({
     end,
 })
 
+Incantations.addIncantation({
+    Id = "BoonStacker_Disable",
+    Name = "Separation of Divine Favor",
+    Description = "Disables the boon stacking effect and refunds the resources used to unlock it.",
+    FlavorText = "Maybe you can have too much of a good thing.",
+    WorldUpgradeData = {
+        Icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue", 
+        Cost = {},
+        GameStateRequirements = {
+            {
+                PathTrue = { "GameState", "WorldUpgrades", "BoonStacker_Unlock" },
+            },
+        },
+    },
+    OnEnabled = function(source, incantationId)
+        -- Refund
+        for name, amount in pairs(unlockCost) do
+            game.AddResource(name, amount, "BoonStacker_Refund")
+        end
+
+        -- Disable Logic
+        if BoonStacker and BoonStacker.DisableLogic then
+            print("BoonStacker: Disable Incantation enabled, deactivating logic.")
+            BoonStacker.DisableLogic()
+        end
+
+        -- Cleanup State
+        if game.GameState and game.GameState.WorldUpgrades then
+            game.GameState.WorldUpgrades.BoonStacker_Unlock = nil
+            
+            -- Reset this incantation so it can be used again if needed
+            game.thread(function()
+                game.wait(0.1) -- Wait a frame to ensure processing completes
+                game.GameState.WorldUpgrades.BoonStacker_Disable = nil
+            end)
+        end
+    end,
+})
+
