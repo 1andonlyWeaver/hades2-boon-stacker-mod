@@ -69,7 +69,15 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 	if not hasGuarantee and not game.IsEmpty(traitsWithGuaranteedSlot) and not game.IsEmpty(priorityOptions) then
 		local key, firstOption = next(priorityOptions)
 		if firstOption then
-			firstOption.ItemName = game.GetRandomValue( traitsWithGuaranteedSlot )
+			local validGuaranteedTraits = {}
+			for _, traitName in ipairs(traitsWithGuaranteedSlot) do
+				if not game.HeroHasTrait(traitName) then
+					table.insert(validGuaranteedTraits, traitName)
+				end
+			end
+			if not game.IsEmpty(validGuaranteedTraits) then
+				firstOption.ItemName = game.GetRandomValue( validGuaranteedTraits )
+			end
 		end
 	end
 	return priorityOptions
@@ -136,7 +144,7 @@ function game.TraitUIAdd( trait, args )
 		-- Add to stack list if not present
 		local found = false
 		for _, t in ipairs(game.BoonStacker_StackedTraits[slot]) do
-			if t.Name == trait.Name then found = true break end
+			if t == trait then found = true break end
 		end
 		if not found then
 			table.insert(game.BoonStacker_StackedTraits[slot], trait)
@@ -151,13 +159,18 @@ function game.TraitUIAdd( trait, args )
 		local currentIndex = game.BoonStacker_CurrentTraitIndex[slot]
 		local currentTrait = game.BoonStacker_StackedTraits[slot][currentIndex]
 		
-		if currentTrait and trait.Name == currentTrait.Name then
+		if currentTrait and trait == currentTrait then
 			-- Temporarily restore Slot so original function places it correctly
 			trait.Slot = slot
-			originalTraitUIAdd( trait, args )
+			local status, result = pcall(originalTraitUIAdd, trait, args)
 			trait.Slot = nil
+			
+			if not status then
+				error(result)
+			end
+			return result
 		end
-		return
+		return nil
 	end
 	
 	return originalTraitUIAdd( trait, args )
@@ -169,15 +182,20 @@ function game.TraitUIRemove( trait )
 	local slot = GetTraitSlot(trait)
 	if IsHudSlot(slot) then
 		trait.Slot = slot
-		originalTraitUIRemove( trait )
+		local status, result = pcall(originalTraitUIRemove, trait)
 		trait.Slot = nil
-		return
+		
+		if not status then
+			error(result)
+		end
+		return result
 	end
 	return originalTraitUIRemove( trait )
 end
 
 -- Cycle logic
 function game.BoonStacker_CycleSlots( cycleId )
+	print("BoonStacker: Cycle thread started for ID " .. tostring(cycleId))
 	while game.ShowingCombatUI and cycleId == game.BoonStacker_CycleId do
 		game.wait(3.0) -- Cycle every 3 seconds
 		
@@ -199,7 +217,7 @@ function game.BoonStacker_CycleSlots( cycleId )
 				-- We use pcall to avoid crashing the thread if UI state is mid-transition
 				pcall(function()
 					if oldTrait then game.TraitUIRemove(oldTrait) end
-					if newTrait then game.TraitUIAdd(newTrait) end
+					if newTrait then game.TraitUIAdd(newTrait, { Show = true }) end
 				end)
 			end
 		end
