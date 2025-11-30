@@ -211,6 +211,7 @@ local originalShowTraitUI = game.ShowTraitUI
 function game.ShowTraitUI( args )
 	-- Reset stacks tracking on fresh show
 	game.BoonStacker_StackedTraits = {}
+	game.BoonStacker_CurrentTraitIndex = {}
 	
 	originalShowTraitUI( args )
 	
