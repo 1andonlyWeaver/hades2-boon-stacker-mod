@@ -13,8 +13,8 @@ local unlockCost = {
 
 if config.UseEasyUnlock then
     unlockCost = {
-        PlantFNightshade = 5, -- Nightshade
-        PlantFMoly = 5, -- Moly
+        PlantFNightshade = 1, -- Nightshade
+        PlantFMoly = 1, -- Moly
     }
 end
 
