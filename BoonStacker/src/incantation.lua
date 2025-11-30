@@ -6,6 +6,12 @@
 local mods = rom.mods
 Incantations = mods['BlueRaja-IncantationsAPI']
 
+if game.GameState and game.GameState.WorldUpgrades then
+    print("BoonStacker: Unlock State in WorldUpgrades: " .. tostring(game.GameState.WorldUpgrades.BoonStacker_Unlock))
+else
+    print("BoonStacker: GameState or WorldUpgrades not ready.")
+end
+
 local unlockCost = { 
     MixerIBoss = 1, -- Zodiac Sand
     MixerQBoss = 1, -- Void Lens
@@ -60,11 +66,21 @@ Incantations.addIncantation({
     Description = "Disables the boon stacking effect and refunds the resources used to unlock it.",
     FlavorText = "Maybe you can have too much of a good thing.",
     WorldUpgradeData = {
+        InheritFrom = { "DefaultInstantItem" },
         Icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue", 
-        Cost = {},
+        Cost = {
+            PlantFMoly = 1,
+        },
+        AlwaysRevealImmediately = true, 
         GameStateRequirements = {
+             {
+                 PathTrue = { "GameState", "WorldUpgrades", "BoonStacker_Unlock" },
+             },
+        },
+        IncantationVoiceLines = {
             {
-                PathTrue = { "GameState", "WorldUpgrades", "BoonStacker_Unlock" },
+                PreLineWait = 0.3,
+                { Cue = "/VO/Melinoe_1076", Text = "{#Emph}Kataskion aski!" },
             },
         },
     },
@@ -73,6 +89,8 @@ Incantations.addIncantation({
         for name, amount in pairs(unlockCost) do
             game.AddResource(name, amount, "BoonStacker_Refund")
         end
+        -- Refund the token cost as well
+        game.AddResource("PlantFMoly", 1, "BoonStacker_Refund")
 
         -- Disable Logic
         if BoonStacker and BoonStacker.DisableLogic then
