@@ -164,12 +164,13 @@ function game.TraitUIAdd( trait, args )
 			-- Temporarily restore Slot so original function places it correctly
 			trait.Slot = slot
 			local status, result = pcall(originalTraitUIAdd, trait, args)
-			trait.Slot = nil
 			
 			if not status then
 				print("BS_DEBUG: Error adding trait UI: " .. tostring(result))
 				error(result)
 			end
+			
+			trait.Slot = nil
 			return result
 		end
 		return nil
@@ -185,11 +186,12 @@ function game.TraitUIRemove( trait )
 	if IsHudSlot(slot) then
 		trait.Slot = slot
 		local status, result = pcall(originalTraitUIRemove, trait)
-		trait.Slot = nil
 		
 		if not status then
 			error(result)
 		end
+		
+		trait.Slot = nil
 		return result
 	end
 	return originalTraitUIRemove( trait )
