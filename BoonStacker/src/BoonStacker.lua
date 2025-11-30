@@ -128,7 +128,12 @@ function game.IsShownInHUD( trait )
 	end
 	local slot = GetTraitSlot(trait)
 	if IsHudSlot(slot) then
-		return true
+		-- Temporarily restore slot to check visibility against original logic
+		local prevSlot = trait.Slot
+		trait.Slot = slot
+		local isShown = originalIsShownInHUD(trait)
+		trait.Slot = prevSlot
+		return isShown
 	end
 	return originalIsShownInHUD( trait )
 end
@@ -166,8 +171,10 @@ function game.TraitUIAdd( trait, args )
 		
 		if currentTrait and trait == currentTrait then
 			-- Temporarily restore Slot so original function places it correctly
+			local prevSlot = trait.Slot
 			trait.Slot = slot
 			local status, result = pcall(originalTraitUIAdd, trait, args)
+			trait.Slot = prevSlot
 			
 			if not status then
 				print("BS_DEBUG: Error adding trait UI: " .. tostring(result))
@@ -182,8 +189,10 @@ function game.TraitUIAdd( trait, args )
 	-- Fallback: If we are bypassing stack logic (e.g. HUD not ready), 
 	-- restore the slot so original logic works.
 	if trait.OriginalSlot and not trait.Slot then
+		local prevSlot = trait.Slot
 		trait.Slot = trait.OriginalSlot
 		local status, result = pcall(originalTraitUIAdd, trait, args)
+		trait.Slot = prevSlot
 		
 		if not status then
 			print("BS_DEBUG: Error in fallback TraitUIAdd: " .. tostring(result))
@@ -212,8 +221,10 @@ function game.TraitUIRemove( trait )
 			end
 		end
 
+		local prevSlot = trait.Slot
 		trait.Slot = slot
 		local status, result = pcall(originalTraitUIRemove, trait)
+		trait.Slot = prevSlot
 		
 		if not status then
 			error(result)
@@ -336,6 +347,9 @@ function game.ShowTraitUI( args )
 	-- Increment cycle ID to kill old threads immediately
 	game.BoonStacker_CycleId = (game.BoonStacker_CycleId or 0) + 1
 	
+	-- Reset cycle timer to ensure fresh timing for new UI session
+	game.BoonStacker_NextCycleTime = nil
+	
 	-- Ensure index table exists
 	if game.BoonStacker_CurrentTraitIndex == nil then
 		game.BoonStacker_CurrentTraitIndex = {}
@@ -359,14 +373,24 @@ function game.ShowTraitUI( args )
 	end
 
 	-- Clamp indices if they are out of bounds for the new counts
+	local slotsToClear = {}
+	local slotsToReset = {}
 	for slot, index in pairs(game.BoonStacker_CurrentTraitIndex) do
 		local count = slotCounts[slot] or 0
 		if count == 0 then
-			game.BoonStacker_CurrentTraitIndex[slot] = nil
+			table.insert(slotsToClear, slot)
 		elseif index > count then
 			print("BS_DEBUG: Resetting index for slot " .. tostring(slot) .. " (Index " .. tostring(index) .. " > " .. tostring(count) .. ")")
-			game.BoonStacker_CurrentTraitIndex[slot] = 1
+			table.insert(slotsToReset, slot)
 		end
+	end
+	
+	for _, slot in ipairs(slotsToClear) do
+		game.BoonStacker_CurrentTraitIndex[slot] = nil
+	end
+	
+	for _, slot in ipairs(slotsToReset) do
+		game.BoonStacker_CurrentTraitIndex[slot] = 1
 	end
 
 	-- Reset stacks tracking on fresh show
