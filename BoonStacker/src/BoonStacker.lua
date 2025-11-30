@@ -195,11 +195,40 @@ end
 
 -- Cycle logic
 function game.BoonStacker_CycleSlots( cycleId )
-	print("BoonStacker: Cycle thread started for ID " .. tostring(cycleId))
+	-- print("BoonStacker: Cycle thread started for ID " .. tostring(cycleId))
+	
+	local cycleInterval = 3.0
+	
+	-- Initialize next cycle time if needed (using absolute world time)
+	if not game.BoonStacker_NextCycleTime then
+		if _worldTime then
+			game.BoonStacker_NextCycleTime = _worldTime + cycleInterval
+		end
+	end
+
 	while game.ShowingCombatUI and cycleId == game.BoonStacker_CycleId do
-		game.wait(3.0) -- Cycle every 3 seconds
+		local waitDuration = cycleInterval
+		
+		-- Calculate remaining time to next cycle point
+		if _worldTime and game.BoonStacker_NextCycleTime then
+			waitDuration = game.BoonStacker_NextCycleTime - _worldTime
+			-- Ensure we don't wait negative or too small time
+			if waitDuration < 0.05 then waitDuration = 0.05 end
+		end
+		
+		game.wait(waitDuration) 
 		
 		if not game.ShowingCombatUI or cycleId ~= game.BoonStacker_CycleId then break end
+		
+		-- Update target time for next cycle
+		if _worldTime then
+			-- If we fell behind significantly (e.g. pause/lag), reset to now + interval
+			if game.BoonStacker_NextCycleTime < _worldTime then
+				game.BoonStacker_NextCycleTime = _worldTime + cycleInterval
+			else
+				game.BoonStacker_NextCycleTime = game.BoonStacker_NextCycleTime + cycleInterval
+			end
+		end
 		
 		for slot, traits in pairs(game.BoonStacker_StackedTraits) do
 			if #traits > 1 then
@@ -227,9 +256,35 @@ end
 -- Override ShowTraitUI to start the cycler
 local originalShowTraitUI = game.ShowTraitUI
 function game.ShowTraitUI( args )
+	
+	-- Ensure index table exists
+	if game.BoonStacker_CurrentTraitIndex == nil then
+		game.BoonStacker_CurrentTraitIndex = {}
+	end
+	
+	-- Pre-calculate counts to fix stale indices before we try to draw
+	local slotCounts = {}
+	if game.CurrentRun and game.CurrentRun.Hero and game.CurrentRun.Hero.Traits then
+		for _, trait in pairs(game.CurrentRun.Hero.Traits) do
+			if game.IsShownInHUD(trait) then
+				local slot = GetTraitSlot(trait)
+				if IsHudSlot(slot) then
+					slotCounts[slot] = (slotCounts[slot] or 0) + 1
+				end
+			end
+		end
+	end
+
+	-- Clamp indices if they are out of bounds for the new counts
+	for slot, index in pairs(game.BoonStacker_CurrentTraitIndex) do
+		local count = slotCounts[slot] or 0
+		if index > count then
+			game.BoonStacker_CurrentTraitIndex[slot] = 1
+		end
+	end
+
 	-- Reset stacks tracking on fresh show
 	game.BoonStacker_StackedTraits = {}
-	game.BoonStacker_CurrentTraitIndex = {}
 	
 	originalShowTraitUI( args )
 	
