@@ -221,8 +221,8 @@ function game.TraitUIAdd( trait, args )
 		return nil
 	end
 	
+	local prevSlot = trait.Slot
 	if trait.OriginalSlot and not trait.Slot then
-		local prevSlot = trait.Slot
 		trait.Slot = trait.OriginalSlot
 		local status, result = pcall(originals.TraitUIAdd, trait, args)
 		trait.Slot = prevSlot
@@ -312,10 +312,6 @@ function game.BoonStacker_CycleSlots( cycleId, expectedCounts )
 		
 		if not game.ShowingCombatUI or cycleId ~= game.BoonStacker_CycleId then 
 			break 
-		end
-		
-		if not game.ShowingCombatUI then
-			break
 		end
 		
 		if _worldTime then
