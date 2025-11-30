@@ -92,3 +92,131 @@ function game.HeroSlotFilled( slotName, ... )
 	end
 	return originalHeroSlotFilled( slotName, ... )
 end
+
+-- UI Overrides for Boon Stacking / Cycling
+
+-- Global state for cycling
+game.BoonStacker_StackedTraits = {}
+game.BoonStacker_CurrentTraitIndex = {}
+game.BoonStacker_CycleId = 0
+
+-- Helper to safely check if a trait belongs to a HUD slot
+local function GetTraitSlot(trait)
+	return trait.Slot or trait.OriginalSlot
+end
+
+local function IsHudSlot(slot)
+	return slot and game.Contains(game.ScreenData.HUD.SlottedTraitOrder, slot)
+end
+
+-- Override IsShownInHUD to respect OriginalSlot
+local originalIsShownInHUD = game.IsShownInHUD
+function game.IsShownInHUD( trait )
+	if trait.Hidden then
+		return false
+	end
+	local slot = GetTraitSlot(trait)
+	if IsHudSlot(slot) then
+		return true
+	end
+	return originalIsShownInHUD( trait )
+end
+
+-- Override TraitUIAdd to manage stacking
+local originalTraitUIAdd = game.TraitUIAdd
+function game.TraitUIAdd( trait, args )
+	local slot = GetTraitSlot(trait)
+	
+	if IsHudSlot(slot) then
+		-- Initialize stack list for this slot if needed
+		if not game.BoonStacker_StackedTraits[slot] then
+			game.BoonStacker_StackedTraits[slot] = {}
+		end
+		
+		-- Add to stack list if not present
+		local found = false
+		for _, t in ipairs(game.BoonStacker_StackedTraits[slot]) do
+			if t.Name == trait.Name then found = true break end
+		end
+		if not found then
+			table.insert(game.BoonStacker_StackedTraits[slot], trait)
+		end
+		
+		-- Initialize index if needed
+		if game.BoonStacker_CurrentTraitIndex[slot] == nil then
+			game.BoonStacker_CurrentTraitIndex[slot] = 1
+		end
+		
+		-- Only draw if this is the currently active trait for this slot
+		local currentIndex = game.BoonStacker_CurrentTraitIndex[slot]
+		local currentTrait = game.BoonStacker_StackedTraits[slot][currentIndex]
+		
+		if currentTrait and trait.Name == currentTrait.Name then
+			-- Temporarily restore Slot so original function places it correctly
+			trait.Slot = slot
+			originalTraitUIAdd( trait, args )
+			trait.Slot = nil
+		end
+		return
+	end
+	
+	return originalTraitUIAdd( trait, args )
+end
+
+-- Override TraitUIRemove to handle missing Slot
+local originalTraitUIRemove = game.TraitUIRemove
+function game.TraitUIRemove( trait )
+	local slot = GetTraitSlot(trait)
+	if IsHudSlot(slot) then
+		trait.Slot = slot
+		originalTraitUIRemove( trait )
+		trait.Slot = nil
+		return
+	end
+	return originalTraitUIRemove( trait )
+end
+
+-- Cycle logic
+function game.BoonStacker_CycleSlots( cycleId )
+	while game.ShowingCombatUI and cycleId == game.BoonStacker_CycleId do
+		game.wait(3.0) -- Cycle every 3 seconds
+		
+		if not game.ShowingCombatUI or cycleId ~= game.BoonStacker_CycleId then break end
+		
+		for slot, traits in pairs(game.BoonStacker_StackedTraits) do
+			if #traits > 1 then
+				local currentIndex = game.BoonStacker_CurrentTraitIndex[slot] or 1
+				local oldTrait = traits[currentIndex]
+				
+				-- Increment index
+				currentIndex = currentIndex + 1
+				if currentIndex > #traits then currentIndex = 1 end
+				game.BoonStacker_CurrentTraitIndex[slot] = currentIndex
+				
+				local newTrait = traits[currentIndex]
+				
+				-- Swap visuals
+				-- We use pcall to avoid crashing the thread if UI state is mid-transition
+				pcall(function()
+					if oldTrait then game.TraitUIRemove(oldTrait) end
+					if newTrait then game.TraitUIAdd(newTrait) end
+				end)
+			end
+		end
+	end
+end
+
+-- Override ShowTraitUI to start the cycler
+local originalShowTraitUI = game.ShowTraitUI
+function game.ShowTraitUI( args )
+	-- Reset stacks tracking on fresh show
+	game.BoonStacker_StackedTraits = {}
+	
+	originalShowTraitUI( args )
+	
+	-- Increment cycle ID to kill old threads
+	game.BoonStacker_CycleId = (game.BoonStacker_CycleId or 0) + 1
+	local currentId = game.BoonStacker_CycleId
+	
+	game.thread( function() game.BoonStacker_CycleSlots(currentId) end )
+end
