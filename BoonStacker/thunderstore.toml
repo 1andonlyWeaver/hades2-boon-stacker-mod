@@ -3,7 +3,7 @@ schemaVersion = "0.0.1"
 
 
 [package]
-namespace = "MyName"
+namespace = "1andonlyWeaver"
 name = "BoonStacker"
 versionNumber = "1.0.0"
 description = "Allows players to stack boons in core slots (Attack, Special, Cast, Sprint, Magick) without replacing existing ones."

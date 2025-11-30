@@ -3,7 +3,7 @@
 
 -- Override GetPriorityTraits to ignore occupied slots
 function game.GetPriorityTraits( traitNames, lootData, args )
-	if traitNames == nil then
+	if traitNames == nil or lootData == nil then
 		return {}
 	end
 	args = args or {}
@@ -34,24 +34,30 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 		end
 	end
 
-	if heroHasPriorityTrait then
-		return { game.GetRandomValue(priorityOptions) }
-	end
+	-- If we have priority traits but we haven't ensured guarantees yet, we shouldn't return early if we want to be strict.
+	-- However, if heroHasPriorityTrait is true, it means we found traits that the hero DOESN'T have yet but were in the list.
+	-- The logic below is: if we found valid priority options, return one of them. 
+	-- BUT we must respect guaranteed slots if possible.
+	
+	-- Original logic had an early return here. 
+	-- To support guarantees, we should only return early if we are sure we don't need to force a guarantee.
+	-- But the simplest fix for now is to NOT return early and let the guarantee logic run.
+	
+	-- (Removing early return block)
+
 	while game.TableLength( priorityOptions ) > game.GetTotalLootChoices() do
 		game.RemoveRandomValue( priorityOptions )
 		priorityOptions = game.CollapseTable( priorityOptions )
 	end
 	local hasGuarantee = false
-	if game.IsEmpty(traitsWithGuaranteedSlot)  then
-		hasGuarantee = true
-	end
-	
+
 	for i, option in pairs(priorityOptions) do
 		if game.Contains(guaranteedSlots, game.TraitData[option.ItemName].Slot) then
 			hasGuarantee = true
 		end
 	end
-	if not hasGuarantee then
+
+	if not hasGuarantee and not game.IsEmpty(traitsWithGuaranteedSlot) and not game.IsEmpty(priorityOptions) then
 		priorityOptions[1].ItemName = game.GetRandomValue( traitsWithGuaranteedSlot )
 	end
 	return priorityOptions
