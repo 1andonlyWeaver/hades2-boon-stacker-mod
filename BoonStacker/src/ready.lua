@@ -8,3 +8,4 @@
 --	values and functions later defined in `reload.lua`.
 
 import 'BoonStacker.lua'
+import 'incantation.lua'

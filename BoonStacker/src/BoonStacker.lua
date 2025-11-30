@@ -1,20 +1,67 @@
 ---@meta _
 -- Boon Stacker Logic
 
+BoonStacker = public.BoonStacker or {}
+public.BoonStacker = BoonStacker
+
 local guaranteedSlots = {"Melee", "Secondary", "Ranged", "Rush", "Mana"}
 
--- Strip slots from TraitData to prevent replacement logic
-if game.TraitData then
-	for name, trait in pairs(game.TraitData) do
-		if trait.Slot and game.Contains(guaranteedSlots, trait.Slot) then
-			trait.OriginalSlot = trait.Slot
-			trait.Slot = nil
-		end
-	end
+-- Capture originals
+-- We use a check to avoid re-capturing our own wrappers on reload if this file is re-run without a clean state
+-- (Though ideally reloading cleans up, but we'll be safe)
+if not BoonStacker.Originals then
+    BoonStacker.Originals = {
+        GetPriorityTraits = game.GetPriorityTraits,
+        GetReplacementTraits = game.GetReplacementTraits,
+        HeroSlotFilled = game.HeroSlotFilled,
+        IsShownInHUD = game.IsShownInHUD,
+        TraitUIAdd = game.TraitUIAdd,
+        TraitUIRemove = game.TraitUIRemove,
+        ShowTraitUI = game.ShowTraitUI
+    }
 end
 
--- Override GetPriorityTraits to ignore occupied slots
+local originals = public.BoonStacker.Originals
+
+function public.BoonStacker.IsUnlocked()
+    if game.GameState and game.GameState.WorldUpgrades and game.GameState.WorldUpgrades.BoonStacker_Unlock then
+        return true
+    end
+    return false
+end
+
+function public.BoonStacker.EnableLogic()
+    if not game.TraitData then return end
+    print("BoonStacker: Enabling Logic (modifying TraitData)")
+    for name, trait in pairs(game.TraitData) do
+        if trait.Slot and game.Contains(guaranteedSlots, trait.Slot) then
+            trait.OriginalSlot = trait.Slot
+            trait.Slot = nil
+        end
+    end
+end
+
+function public.BoonStacker.DisableLogic()
+    if not game.TraitData then return end
+    print("BoonStacker: Disabling Logic (restoring TraitData)")
+    for name, trait in pairs(game.TraitData) do
+        if trait.OriginalSlot and game.Contains(guaranteedSlots, trait.OriginalSlot) then
+            trait.Slot = trait.OriginalSlot
+        end
+    end
+end
+
+-- Initial check on load
+if public.BoonStacker.IsUnlocked() then
+    public.BoonStacker.EnableLogic()
+end
+
+-- Override GetPriorityTraits
 function game.GetPriorityTraits( traitNames, lootData, args )
+    if not public.BoonStacker.IsUnlocked() then
+        return originals.GetPriorityTraits(traitNames, lootData, args)
+    end
+
 	print("BoonStacker: GetPriorityTraits called")
 	if traitNames == nil or lootData == nil then
 		return {}
@@ -24,14 +71,9 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 	local priorityOptions = {}
 	local traitsWithGuaranteedSlot = {}
 
-	-- BoonStacker: Removed occupiedSlots population loop
-
 	for index, traitName in ipairs(traitNames) do
-
-		-- Use game.TraitData, game.IsTraitEligible etc to ensure we hit the game globals
 		local traitData = game.TraitData[traitName]
 		if traitData and (lootData.StripRequirements or game.IsTraitEligible( traitData )) then
-			-- BoonStacker: Removed occupiedSlots check
 			if not game.HeroHasTrait(traitName) then
 				local data = { ItemName = traitName, Type = "Trait"}
 				table.insert(priorityOptions, data)
@@ -43,12 +85,6 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 			end
 		end
 	end
-
-	-- If we have priority traits but we haven't ensured guarantees yet, we shouldn't return early if we want to be strict.
-	-- The logic below is: if we found valid priority options, return one of them. 
-	-- BUT we must respect guaranteed slots if possible.
-	
-	-- (Removing early return block)
 
 	while game.TableLength( priorityOptions ) > game.GetTotalLootChoices() do
 		game.RemoveRandomValue( priorityOptions )
@@ -83,25 +119,29 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 	return priorityOptions
 end
 
--- Override GetReplacementTraits to disable replacements (swapping)
+-- Override GetReplacementTraits
 function game.GetReplacementTraits( ... )
+    if not public.BoonStacker.IsUnlocked() then
+        return originals.GetReplacementTraits(...)
+    end
 	print("BoonStacker: GetReplacementTraits blocking replacement")
 	return {}
 end
 
--- Capture original function to call for non-guaranteed slots
-local originalHeroSlotFilled = game.HeroSlotFilled
-
--- Override HeroSlotFilled to trick the game into thinking slots are always free
+-- Override HeroSlotFilled
 function game.HeroSlotFilled( slotName, ... )
+    if not public.BoonStacker.IsUnlocked() then
+        return originals.HeroSlotFilled(slotName, ...)
+    end
+
 	if game.Contains(guaranteedSlots, slotName) then
 		print("BoonStacker: HeroSlotFilled forcing false for " .. tostring(slotName))
 		return false
 	end
-	return originalHeroSlotFilled( slotName, ... )
+	return originals.HeroSlotFilled( slotName, ... )
 end
 
--- UI Overrides for Boon Stacking / Cycling
+-- UI Overrides
 
 -- Global state for cycling
 game.BoonStacker_StackedTraits = {}
@@ -109,7 +149,6 @@ game.BoonStacker_CurrentTraitIndex = {}
 game.BoonStacker_CycleId = 0
 game.BoonStacker_CyclingUpdates = false
 
--- Helper to safely check if a trait belongs to a HUD slot
 local function GetTraitSlot(trait)
 	return trait.Slot or trait.OriginalSlot
 end
@@ -120,60 +159,56 @@ local function IsHudSlot(slot)
 		and game.Contains(game.ScreenData.HUD.SlottedTraitOrder, slot)
 end
 
--- Override IsShownInHUD to respect OriginalSlot
-local originalIsShownInHUD = game.IsShownInHUD
 function game.IsShownInHUD( trait )
+    if not public.BoonStacker.IsUnlocked() then
+        return originals.IsShownInHUD(trait)
+    end
+
 	if trait.Hidden then
 		return false
 	end
 	local slot = GetTraitSlot(trait)
 	if IsHudSlot(slot) then
-		-- Temporarily restore slot to check visibility against original logic
 		local prevSlot = trait.Slot
 		trait.Slot = slot
-		local isShown = originalIsShownInHUD(trait)
+		local isShown = originals.IsShownInHUD(trait)
 		trait.Slot = prevSlot
 		return isShown
 	end
-	return originalIsShownInHUD( trait )
+	return originals.IsShownInHUD( trait )
 end
 
--- Override TraitUIAdd to manage stacking
-local originalTraitUIAdd = game.TraitUIAdd
 function game.TraitUIAdd( trait, args )
+    if not public.BoonStacker.IsUnlocked() then
+        return originals.TraitUIAdd(trait, args)
+    end
+
 	local slot = GetTraitSlot(trait)
 	
 	if IsHudSlot(slot) then
-		-- Initialize stack list for this slot if needed
 		if not game.BoonStacker_StackedTraits[slot] then
 			game.BoonStacker_StackedTraits[slot] = {}
 		end
 		
-		-- Add to stack list if not present
 		local found = false
 		for _, t in ipairs(game.BoonStacker_StackedTraits[slot]) do
 			if t == trait then found = true break end
 		end
 		if not found then
 			table.insert(game.BoonStacker_StackedTraits[slot], trait)
-			print("BS_DEBUG: Added " .. tostring(trait.Name) .. " to " .. tostring(slot) .. " (Total: " .. tostring(#game.BoonStacker_StackedTraits[slot]) .. ")")
 		end
 		
-		-- Initialize index if needed or if out of bounds
-		-- Check against current stack size to ensure we don't wait for a trait that isn't coming
 		if game.BoonStacker_CurrentTraitIndex[slot] == nil or game.BoonStacker_CurrentTraitIndex[slot] < 1 or game.BoonStacker_CurrentTraitIndex[slot] > #game.BoonStacker_StackedTraits[slot] then
 			game.BoonStacker_CurrentTraitIndex[slot] = 1
 		end
 		
-		-- Only draw if this is the currently active trait for this slot
 		local currentIndex = game.BoonStacker_CurrentTraitIndex[slot]
 		local currentTrait = game.BoonStacker_StackedTraits[slot][currentIndex]
 		
 		if currentTrait and trait == currentTrait then
-			-- Temporarily restore Slot so original function places it correctly
 			local prevSlot = trait.Slot
 			trait.Slot = slot
-			local status, result = pcall(originalTraitUIAdd, trait, args)
+			local status, result = pcall(originals.TraitUIAdd, trait, args)
 			trait.Slot = prevSlot
 			
 			if not status then
@@ -186,12 +221,10 @@ function game.TraitUIAdd( trait, args )
 		return nil
 	end
 	
-	-- Fallback: If we are bypassing stack logic (e.g. HUD not ready), 
-	-- restore the slot so original logic works.
 	if trait.OriginalSlot and not trait.Slot then
 		local prevSlot = trait.Slot
 		trait.Slot = trait.OriginalSlot
-		local status, result = pcall(originalTraitUIAdd, trait, args)
+		local status, result = pcall(originals.TraitUIAdd, trait, args)
 		trait.Slot = prevSlot
 		
 		if not status then
@@ -202,20 +235,20 @@ function game.TraitUIAdd( trait, args )
 		return result
 	end
 	
-	return originalTraitUIAdd( trait, args )
+	return originals.TraitUIAdd( trait, args )
 end
 
--- Override TraitUIRemove to handle missing Slot
-local originalTraitUIRemove = game.TraitUIRemove
 function game.TraitUIRemove( trait )
+    if not public.BoonStacker.IsUnlocked() then
+        return originals.TraitUIRemove(trait)
+    end
+
 	local slot = GetTraitSlot(trait)
 	if IsHudSlot(slot) then
-		-- Cleanup stack if not cycling
 		if not game.BoonStacker_CyclingUpdates and game.BoonStacker_StackedTraits[slot] then
 			for i, t in ipairs(game.BoonStacker_StackedTraits[slot]) do
 				if t == trait then
 					table.remove(game.BoonStacker_StackedTraits[slot], i)
-					print("BS_DEBUG: Removed " .. tostring(trait.Name) .. " from " .. tostring(slot))
 					break
 				end
 			end
@@ -223,7 +256,7 @@ function game.TraitUIRemove( trait )
 
 		local prevSlot = trait.Slot
 		trait.Slot = slot
-		local status, result = pcall(originalTraitUIRemove, trait)
+		local status, result = pcall(originals.TraitUIRemove, trait)
 		trait.Slot = prevSlot
 		
 		if not status then
@@ -232,14 +265,12 @@ function game.TraitUIRemove( trait )
 		
 		return result
 	end
-	return originalTraitUIRemove( trait )
+	return originals.TraitUIRemove( trait )
 end
 
--- Cycle logic
 function game.BoonStacker_CycleSlots( cycleId, expectedCounts )
 	print("BS_DEBUG: Cycle thread started for ID " .. tostring(cycleId))
 	
-	-- Wait for traits to populate to avoid race condition
 	if expectedCounts then
 		local retries = 20
 		while retries > 0 do
@@ -263,7 +294,6 @@ function game.BoonStacker_CycleSlots( cycleId, expectedCounts )
 	
 	local cycleInterval = 3.0
 	
-	-- Initialize next cycle time if needed (using absolute world time)
 	if not game.BoonStacker_NextCycleTime then
 		if _worldTime then
 			game.BoonStacker_NextCycleTime = _worldTime + cycleInterval
@@ -273,33 +303,24 @@ function game.BoonStacker_CycleSlots( cycleId, expectedCounts )
 	while game.ShowingCombatUI and cycleId == game.BoonStacker_CycleId do
 		local waitDuration = cycleInterval
 		
-		-- Calculate remaining time to next cycle point
 		if _worldTime and game.BoonStacker_NextCycleTime then
 			waitDuration = game.BoonStacker_NextCycleTime - _worldTime
-			-- Ensure we don't wait negative or too small time
 			if waitDuration < 0.05 then waitDuration = 0.05 end
 		end
 		
-		-- Use 'waitUnmodified' if available to avoid game speed mods, but standard wait is fine for now
 		game.wait(waitDuration) 
 		
 		if not game.ShowingCombatUI or cycleId ~= game.BoonStacker_CycleId then 
-			print("BS_DEBUG: Cycle thread aborting (UI Hidden or ID mismatch)")
 			break 
 		end
 		
-		-- Double check ShowingCombatUI before proceeding with cycle logic
 		if not game.ShowingCombatUI then
-			print("BS_DEBUG: Cycle thread aborting (UI Hidden check #2)")
 			break
 		end
 		
-		-- Update target time for next cycle
 		if _worldTime then
-			-- Initialize if nil (e.g. world time wasn't ready at start)
 			if not game.BoonStacker_NextCycleTime then
 				game.BoonStacker_NextCycleTime = _worldTime + cycleInterval
-			-- If we fell behind significantly (e.g. pause/lag), reset to now + interval
 			elseif game.BoonStacker_NextCycleTime < _worldTime then
 				game.BoonStacker_NextCycleTime = _worldTime + cycleInterval
 			else
@@ -315,19 +336,12 @@ function game.BoonStacker_CycleSlots( cycleId, expectedCounts )
 				end
 				local oldTrait = traits[currentIndex]
 				
-				-- Increment index
 				currentIndex = currentIndex + 1
 				if currentIndex > #traits then currentIndex = 1 end
 				game.BoonStacker_CurrentTraitIndex[slot] = currentIndex
 				
 				local newTrait = traits[currentIndex]
 				
-				if newTrait then
-					print("BS_DEBUG: Cycling slot " .. tostring(slot) .. " to index " .. tostring(currentIndex) .. " (" .. tostring(newTrait.Name) .. ")")
-				end
-
-				-- Swap visuals
-				-- We use pcall to avoid crashing the thread if UI state is mid-transition
 				game.BoonStacker_CyclingUpdates = true
 				pcall(function()
 					if oldTrait then game.TraitUIRemove(oldTrait) end
@@ -339,23 +353,22 @@ function game.BoonStacker_CycleSlots( cycleId, expectedCounts )
 	end
 end
 
--- Override ShowTraitUI to start the cycler
-local originalShowTraitUI = game.ShowTraitUI
 function game.ShowTraitUI( args )
+    -- Even if locked, we might want to clean up if we were previously unlocked?
+    -- But if locked, just use original.
+    if not public.BoonStacker.IsUnlocked() then
+        return originals.ShowTraitUI(args)
+    end
+
 	print("BS_DEBUG: ShowTraitUI called")
 	
-	-- Increment cycle ID to kill old threads immediately
 	game.BoonStacker_CycleId = (game.BoonStacker_CycleId or 0) + 1
-	
-	-- Reset cycle timer to ensure fresh timing for new UI session
 	game.BoonStacker_NextCycleTime = nil
 	
-	-- Ensure index table exists
 	if game.BoonStacker_CurrentTraitIndex == nil then
 		game.BoonStacker_CurrentTraitIndex = {}
 	end
 	
-	-- Pre-calculate counts to fix stale indices before we try to draw
 	local slotCounts = {}
 	if game.CurrentRun and game.CurrentRun.Hero and game.CurrentRun.Hero.Traits then
 		for _, trait in pairs(game.CurrentRun.Hero.Traits) do
@@ -368,11 +381,6 @@ function game.ShowTraitUI( args )
 		end
 	end
 	
-	for slot, count in pairs(slotCounts) do
-		print("BS_DEBUG: Slot " .. tostring(slot) .. " has " .. tostring(count) .. " traits")
-	end
-
-	-- Clamp indices if they are out of bounds for the new counts
 	local slotsToClear = {}
 	local slotsToReset = {}
 	for slot, index in pairs(game.BoonStacker_CurrentTraitIndex) do
@@ -380,7 +388,6 @@ function game.ShowTraitUI( args )
 		if count == 0 then
 			table.insert(slotsToClear, slot)
 		elseif index > count then
-			print("BS_DEBUG: Resetting index for slot " .. tostring(slot) .. " (Index " .. tostring(index) .. " > " .. tostring(count) .. ")")
 			table.insert(slotsToReset, slot)
 		end
 	end
@@ -393,12 +400,10 @@ function game.ShowTraitUI( args )
 		game.BoonStacker_CurrentTraitIndex[slot] = 1
 	end
 
-	-- Reset stacks tracking on fresh show
 	game.BoonStacker_StackedTraits = {}
 	
-	originalShowTraitUI( args )
+	originals.ShowTraitUI( args )
 	
-	-- Recalculate counts after UI rebuild to ensure we wait for the correct number of traits
 	slotCounts = {}
 	if game.CurrentRun and game.CurrentRun.Hero and game.CurrentRun.Hero.Traits then
 		for _, trait in pairs(game.CurrentRun.Hero.Traits) do
@@ -411,18 +416,15 @@ function game.ShowTraitUI( args )
 		end
 	end
 	
-	-- Re-clamp indices after rebuild to ensure they are valid for the actual stacks
 	for slot, traits in pairs(game.BoonStacker_StackedTraits) do
 		local count = #traits
 		local index = game.BoonStacker_CurrentTraitIndex[slot]
 		if index and index > count then
-			print("BS_DEBUG: Re-clamping index for slot " .. tostring(slot) .. " (Index " .. tostring(index) .. " > " .. tostring(count) .. ")")
 			game.BoonStacker_CurrentTraitIndex[slot] = 1
 		end
 	end
 	
 	local currentId = game.BoonStacker_CycleId
 	
-	print("BS_DEBUG: Starting cycle thread " .. tostring(currentId))
 	game.thread( function() game.BoonStacker_CycleSlots(currentId, slotCounts) end )
 end
