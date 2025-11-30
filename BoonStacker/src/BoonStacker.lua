@@ -168,7 +168,6 @@ function game.TraitUIAdd( trait, args )
 			-- Temporarily restore Slot so original function places it correctly
 			trait.Slot = slot
 			local status, result = pcall(originalTraitUIAdd, trait, args)
-			trait.Slot = nil
 			
 			if not status then
 				print("BS_DEBUG: Error adding trait UI: " .. tostring(result))
@@ -185,7 +184,6 @@ function game.TraitUIAdd( trait, args )
 	if trait.OriginalSlot and not trait.Slot then
 		trait.Slot = trait.OriginalSlot
 		local status, result = pcall(originalTraitUIAdd, trait, args)
-		trait.Slot = nil
 		
 		if not status then
 			print("BS_DEBUG: Error in fallback TraitUIAdd: " .. tostring(result))
@@ -216,7 +214,6 @@ function game.TraitUIRemove( trait )
 
 		trait.Slot = slot
 		local status, result = pcall(originalTraitUIRemove, trait)
-		trait.Slot = nil
 		
 		if not status then
 			error(result)
