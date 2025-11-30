@@ -60,4 +60,5 @@ local loader = reload.auto_single()
 -- this runs only when modutil and the game's lua is ready
 modutil.once_loaded.game(function()
 	loader.load(on_ready, on_reload)
+	print("BoonStacker: Mod loaded successfully!")
 end)

@@ -15,6 +15,7 @@ end
 
 -- Override GetPriorityTraits to ignore occupied slots
 function game.GetPriorityTraits( traitNames, lootData, args )
+	print("BoonStacker: GetPriorityTraits called")
 	if traitNames == nil or lootData == nil then
 		return {}
 	end
@@ -76,6 +77,7 @@ end
 
 -- Override GetReplacementTraits to disable replacements (swapping)
 function game.GetReplacementTraits( ... )
+	print("BoonStacker: GetReplacementTraits blocking replacement")
 	return {}
 end
 
@@ -85,6 +87,7 @@ local originalHeroSlotFilled = game.HeroSlotFilled
 -- Override HeroSlotFilled to trick the game into thinking slots are always free
 function game.HeroSlotFilled( slotName, ... )
 	if game.Contains(guaranteedSlots, slotName) then
+		print("BoonStacker: HeroSlotFilled forcing false for " .. tostring(slotName))
 		return false
 	end
 	return originalHeroSlotFilled( slotName, ... )
