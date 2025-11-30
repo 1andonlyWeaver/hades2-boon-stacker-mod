@@ -34,7 +34,7 @@ target = "./LICENSE"
 
 [[build.copy]]
 source = "./src"
-target = "./plugins"
+target = "./"
 
 # Uncomment (remove the #) the three lines below if you have any files to copy to the plugins_data folder (like custom .pkg files)
 # [[build.copy]]
