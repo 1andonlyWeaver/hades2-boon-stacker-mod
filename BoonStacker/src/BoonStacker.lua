@@ -148,6 +148,7 @@ function game.TraitUIAdd( trait, args )
 		end
 		if not found then
 			table.insert(game.BoonStacker_StackedTraits[slot], trait)
+			print("BS_DEBUG: Added " .. tostring(trait.Name) .. " to " .. tostring(slot) .. " (Total: " .. tostring(#game.BoonStacker_StackedTraits[slot]) .. ")")
 		end
 		
 		-- Initialize index if needed
@@ -166,6 +167,7 @@ function game.TraitUIAdd( trait, args )
 			trait.Slot = nil
 			
 			if not status then
+				print("BS_DEBUG: Error adding trait UI: " .. tostring(result))
 				error(result)
 			end
 			return result
@@ -195,7 +197,7 @@ end
 
 -- Cycle logic
 function game.BoonStacker_CycleSlots( cycleId )
-	-- print("BoonStacker: Cycle thread started for ID " .. tostring(cycleId))
+	print("BS_DEBUG: Cycle thread started for ID " .. tostring(cycleId))
 	
 	local cycleInterval = 3.0
 	
@@ -216,9 +218,19 @@ function game.BoonStacker_CycleSlots( cycleId )
 			if waitDuration < 0.05 then waitDuration = 0.05 end
 		end
 		
+		-- Use 'waitUnmodified' if available to avoid game speed mods, but standard wait is fine for now
 		game.wait(waitDuration) 
 		
-		if not game.ShowingCombatUI or cycleId ~= game.BoonStacker_CycleId then break end
+		if not game.ShowingCombatUI or cycleId ~= game.BoonStacker_CycleId then 
+			print("BS_DEBUG: Cycle thread aborting (UI Hidden or ID mismatch)")
+			break 
+		end
+		
+		-- Double check ShowingCombatUI before proceeding with cycle logic
+		if not game.ShowingCombatUI then
+			print("BS_DEBUG: Cycle thread aborting (UI Hidden check #2)")
+			break
+		end
 		
 		-- Update target time for next cycle
 		if _worldTime then
@@ -242,6 +254,8 @@ function game.BoonStacker_CycleSlots( cycleId )
 				
 				local newTrait = traits[currentIndex]
 				
+				print("BS_DEBUG: Cycling slot " .. tostring(slot) .. " to index " .. tostring(currentIndex) .. " (" .. tostring(newTrait.Name) .. ")")
+
 				-- Swap visuals
 				-- We use pcall to avoid crashing the thread if UI state is mid-transition
 				pcall(function()
@@ -256,6 +270,7 @@ end
 -- Override ShowTraitUI to start the cycler
 local originalShowTraitUI = game.ShowTraitUI
 function game.ShowTraitUI( args )
+	print("BS_DEBUG: ShowTraitUI called")
 	
 	-- Ensure index table exists
 	if game.BoonStacker_CurrentTraitIndex == nil then
@@ -274,11 +289,16 @@ function game.ShowTraitUI( args )
 			end
 		end
 	end
+	
+	for slot, count in pairs(slotCounts) do
+		print("BS_DEBUG: Slot " .. tostring(slot) .. " has " .. tostring(count) .. " traits")
+	end
 
 	-- Clamp indices if they are out of bounds for the new counts
 	for slot, index in pairs(game.BoonStacker_CurrentTraitIndex) do
 		local count = slotCounts[slot] or 0
 		if index > count then
+			print("BS_DEBUG: Resetting index for slot " .. tostring(slot) .. " (Index " .. tostring(index) .. " > " .. tostring(count) .. ")")
 			game.BoonStacker_CurrentTraitIndex[slot] = 1
 		end
 	end
@@ -292,5 +312,6 @@ function game.ShowTraitUI( args )
 	game.BoonStacker_CycleId = (game.BoonStacker_CycleId or 0) + 1
 	local currentId = game.BoonStacker_CycleId
 	
+	print("BS_DEBUG: Starting cycle thread " .. tostring(currentId))
 	game.thread( function() game.BoonStacker_CycleSlots(currentId) end )
 end
