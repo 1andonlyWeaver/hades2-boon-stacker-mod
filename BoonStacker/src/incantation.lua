@@ -6,12 +6,6 @@
 local mods = rom.mods
 Incantations = mods['BlueRaja-IncantationsAPI']
 
-if game.GameState and game.GameState.WorldUpgrades then
-    print("BoonStacker: Unlock State in WorldUpgrades: " .. tostring(game.GameState.WorldUpgrades.BoonStacker_Unlock))
-else
-    print("BoonStacker: GameState or WorldUpgrades not ready.")
-end
-
 local unlockCost = { 
     MixerIBoss = 1, -- Zodiac Sand
     MixerQBoss = 1, -- Void Lens
@@ -99,13 +93,37 @@ Incantations.addIncantation({
         end
 
         -- Cleanup State
-        if game.GameState and game.GameState.WorldUpgrades then
-            game.GameState.WorldUpgrades.BoonStacker_Unlock = nil
+        if game.GameState then
+            -- Remove from active upgrades
+            if game.GameState.WorldUpgrades then
+                game.GameState.WorldUpgrades.BoonStacker_Unlock = nil
+                -- We also need to clear Disable so it doesn't show as "Cast" permanently
+                -- But we do this in a thread to allow the current activation to finish?
+                -- Actually, if we clear it immediately, it might not register as "Cast" in the UI log, which is fine.
+                -- But we want to be able to buy Unlock again.
+            end
             
+            -- Remove from history so they can be bought again
+            if game.GameState.WorldUpgradesAdded then
+                game.GameState.WorldUpgradesAdded.BoonStacker_Unlock = nil
+                
+                -- We probably want to keep BoonStacker_Disable in history? 
+                -- If we remove it, it might reappear immediately if requirements are met.
+                -- Wait, the requirement for Disable is "Have Unlock".
+                -- If we remove Unlock, Disable disappears from available list.
+                -- So we just need to ensure Unlock reappears in available list.
+                -- Unlock reappears if it is NOT in WorldUpgradesAdded.
+            end
+
             -- Reset this incantation so it can be used again if needed
             game.thread(function()
                 game.wait(0.1) -- Wait a frame to ensure processing completes
-                game.GameState.WorldUpgrades.BoonStacker_Disable = nil
+                if game.GameState.WorldUpgrades then
+                     game.GameState.WorldUpgrades.BoonStacker_Disable = nil
+                end
+                if game.GameState.WorldUpgradesAdded then
+                     game.GameState.WorldUpgradesAdded.BoonStacker_Disable = nil
+                end
             end)
         end
     end,
