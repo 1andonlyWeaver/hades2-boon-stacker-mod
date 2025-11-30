@@ -1,6 +1,18 @@
 ---@meta _
 -- Boon Stacker Logic
 
+local guaranteedSlots = {"Melee", "Secondary", "Ranged", "Rush", "Mana"}
+
+-- Strip slots from TraitData to prevent replacement logic
+if game.TraitData then
+	for name, trait in pairs(game.TraitData) do
+		if trait.Slot and game.Contains(guaranteedSlots, trait.Slot) then
+			trait.OriginalSlot = trait.Slot
+			trait.Slot = nil
+		end
+	end
+end
+
 -- Override GetPriorityTraits to ignore occupied slots
 function game.GetPriorityTraits( traitNames, lootData, args )
 	if traitNames == nil or lootData == nil then
@@ -9,10 +21,6 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 	args = args or {}
 
 	local priorityOptions = {}
-	local heroHasPriorityTrait = false
-	-- BoonStacker: We don't care about occupied slots
-	-- local occupiedSlots = {} 
-	local guaranteedSlots = {"Melee", "Secondary"} 
 	local traitsWithGuaranteedSlot = {}
 
 	-- BoonStacker: Removed occupiedSlots population loop
@@ -20,28 +28,24 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 	for index, traitName in ipairs(traitNames) do
 
 		-- Use game.TraitData, game.IsTraitEligible etc to ensure we hit the game globals
-		if game.TraitData[traitName] and (lootData.StripRequirements or game.IsTraitEligible( game.TraitData[traitName] )) then
+		local traitData = game.TraitData[traitName]
+		if traitData and (lootData.StripRequirements or game.IsTraitEligible( traitData )) then
 			-- BoonStacker: Removed occupiedSlots check
 			if not game.HeroHasTrait(traitName) then
 				local data = { ItemName = traitName, Type = "Trait"}
 				table.insert(priorityOptions, data)
-				if game.Contains(guaranteedSlots, game.TraitData[traitName].Slot) then
+				
+				local slot = traitData.Slot or traitData.OriginalSlot
+				if slot and game.Contains(guaranteedSlots, slot) then
 					table.insert(traitsWithGuaranteedSlot, traitName)
 				end
-			else
-				heroHasPriorityTrait = true
 			end
 		end
 	end
 
 	-- If we have priority traits but we haven't ensured guarantees yet, we shouldn't return early if we want to be strict.
-	-- However, if heroHasPriorityTrait is true, it means we found traits that the hero DOESN'T have yet but were in the list.
 	-- The logic below is: if we found valid priority options, return one of them. 
 	-- BUT we must respect guaranteed slots if possible.
-	
-	-- Original logic had an early return here. 
-	-- To support guarantees, we should only return early if we are sure we don't need to force a guarantee.
-	-- But the simplest fix for now is to NOT return early and let the guarantee logic run.
 	
 	-- (Removing early return block)
 
@@ -52,24 +56,36 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 	local hasGuarantee = false
 
 	for i, option in pairs(priorityOptions) do
-		if game.Contains(guaranteedSlots, game.TraitData[option.ItemName].Slot) then
-			hasGuarantee = true
+		local traitData = game.TraitData[option.ItemName]
+		if traitData then
+			local slot = traitData.Slot or traitData.OriginalSlot
+			if slot and game.Contains(guaranteedSlots, slot) then
+				hasGuarantee = true
+			end
 		end
 	end
 
 	if not hasGuarantee and not game.IsEmpty(traitsWithGuaranteedSlot) and not game.IsEmpty(priorityOptions) then
-		priorityOptions[1].ItemName = game.GetRandomValue( traitsWithGuaranteedSlot )
+		local key, firstOption = next(priorityOptions)
+		if firstOption then
+			firstOption.ItemName = game.GetRandomValue( traitsWithGuaranteedSlot )
+		end
 	end
 	return priorityOptions
 end
 
 -- Override GetReplacementTraits to disable replacements (swapping)
-function game.GetReplacementTraits( traitNames, onlyFromLootName )
+function game.GetReplacementTraits( ... )
 	return {}
 end
 
--- Override HeroSlotFilled to trick the game into thinking slots are always free
-function game.HeroSlotFilled( slotName )
-	return false
-end
+-- Capture original function to call for non-guaranteed slots
+local originalHeroSlotFilled = game.HeroSlotFilled
 
+-- Override HeroSlotFilled to trick the game into thinking slots are always free
+function game.HeroSlotFilled( slotName, ... )
+	if game.Contains(guaranteedSlots, slotName) then
+		return false
+	end
+	return originalHeroSlotFilled( slotName, ... )
+end
