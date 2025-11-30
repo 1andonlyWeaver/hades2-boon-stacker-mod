@@ -6,6 +6,18 @@
 local mods = rom.mods
 Incantations = mods['BlueRaja-IncantationsAPI']
 
+local unlockCost = { 
+    MixerIBoss = 1, -- Zodiac Sand
+    MixerQBoss = 1, -- Void Lens
+}
+
+if config.UseEasyUnlock then
+    unlockCost = {
+        PlantFNightshade = 5, -- Nightshade
+        PlantFMoly = 5, -- Moly
+    }
+end
+
 Incantations.addIncantation({
 	Id = "BoonStacker_Unlock",
 	Name = "Superposition of Divine Favor",
@@ -13,10 +25,7 @@ Incantations.addIncantation({
     FlavorText = "I will not quiet the thunder to hear the sea. Let them crash together.",
 	WorldUpgradeData = {
 		Icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
-		Cost = { 
-            MixerIBoss = 1, -- Zodiac Sand
-            MixerQBoss = 1, -- Void Lens
-        },
+		Cost = unlockCost,
 		GameStateRequirements = {
 			-- No special requirements other than resources for now
 		},
