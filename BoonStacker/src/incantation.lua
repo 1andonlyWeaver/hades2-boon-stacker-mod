@@ -14,8 +14,8 @@ Incantations.addIncantation({
 	WorldUpgradeData = {
 		Icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
 		Cost = { 
-            { Resource = "MixerIBoss", Amount = 1 }, -- Zodiac Sand
-            { Resource = "MixerQBoss", Amount = 1 }, -- Void Lens
+            MixerIBoss = 1, -- Zodiac Sand
+            MixerQBoss = 1, -- Void Lens
         },
 		GameStateRequirements = {
 			-- No special requirements other than resources for now
