@@ -278,11 +278,9 @@ end
 
 -- UI Overrides
 
--- Global state for cycling
 game.BoonStacker_StackedTraits = {}
 game.BoonStacker_CurrentTraitIndex = {}
-game.BoonStacker_CycleId = 0
-game.BoonStacker_CyclingUpdates = false
+-- Removed cycling globals
 
 local function GetTraitSlot(trait)
 	return trait.Slot or trait.OriginalSlot
@@ -333,7 +331,7 @@ function game.TraitUIAdd( trait, args )
 			table.insert(game.BoonStacker_StackedTraits[slot], trait)
 		end
 		
-		if game.BoonStacker_CurrentTraitIndex[slot] == nil or game.BoonStacker_CurrentTraitIndex[slot] < 1 or game.BoonStacker_CurrentTraitIndex[slot] > #game.BoonStacker_StackedTraits[slot] then
+		if game.BoonStacker_CurrentTraitIndex[slot] == nil or game.BoonStacker_CurrentTraitIndex[slot] < 1 then
 			game.BoonStacker_CurrentTraitIndex[slot] = 1
 		end
 		
@@ -353,6 +351,7 @@ function game.TraitUIAdd( trait, args )
 			
 			return result
 		end
+        -- Do not show stacked traits (Oldest remains shown)
 		return nil
 	end
 	
@@ -380,9 +379,13 @@ function game.TraitUIRemove( trait )
 
 	local slot = GetTraitSlot(trait)
 	if IsHudSlot(slot) then
-		if not game.BoonStacker_CyclingUpdates and game.BoonStacker_StackedTraits[slot] then
+        local wasCurrent = false
+		if game.BoonStacker_StackedTraits[slot] then
 			for i, t in ipairs(game.BoonStacker_StackedTraits[slot]) do
 				if t == trait then
+                    local currentIndex = game.BoonStacker_CurrentTraitIndex[slot] or 1
+                    if i == currentIndex then wasCurrent = true end
+
 					table.remove(game.BoonStacker_StackedTraits[slot], i)
 					break
 				end
@@ -397,91 +400,19 @@ function game.TraitUIRemove( trait )
 		if not status then
 			error(result)
 		end
+
+        -- If we removed the current one (Oldest), update to show the new Oldest
+        if wasCurrent and game.BoonStacker_StackedTraits[slot] and #game.BoonStacker_StackedTraits[slot] > 0 then
+             game.BoonStacker_CurrentTraitIndex[slot] = 1
+             local newTrait = game.BoonStacker_StackedTraits[slot][1]
+             if newTrait then
+                 game.TraitUIAdd(newTrait, { Show = true })
+             end
+        end
 		
 		return result
 	end
 	return originals.TraitUIRemove( trait )
-end
-
-function game.BoonStacker_CycleSlots( cycleId, expectedCounts )
-	print("BS_DEBUG: Cycle thread started for ID " .. tostring(cycleId))
-	
-	if expectedCounts then
-		local retries = 20
-		while retries > 0 do
-			local allReady = true
-			for slot, count in pairs(expectedCounts) do
-				local current = game.BoonStacker_StackedTraits[slot] and #game.BoonStacker_StackedTraits[slot] or 0
-				if current < count then
-					allReady = false
-					break
-				end
-			end
-			
-			if allReady then break end
-			
-			game.wait(0.05)
-			retries = retries - 1
-			
-			if not game.ShowingCombatUI or cycleId ~= game.BoonStacker_CycleId then return end
-		end
-	end
-	
-	local cycleInterval = 3.0
-	
-	if not game.BoonStacker_NextCycleTime then
-		if _worldTime then
-			game.BoonStacker_NextCycleTime = _worldTime + cycleInterval
-		end
-	end
-
-	while game.ShowingCombatUI and cycleId == game.BoonStacker_CycleId do
-		local waitDuration = cycleInterval
-		
-		if _worldTime and game.BoonStacker_NextCycleTime then
-			waitDuration = game.BoonStacker_NextCycleTime - _worldTime
-			if waitDuration < 0.05 then waitDuration = 0.05 end
-		end
-		
-		game.wait(waitDuration) 
-		
-		if not game.ShowingCombatUI or cycleId ~= game.BoonStacker_CycleId then 
-			break 
-		end
-		
-		if _worldTime then
-			if not game.BoonStacker_NextCycleTime then
-				game.BoonStacker_NextCycleTime = _worldTime + cycleInterval
-			elseif game.BoonStacker_NextCycleTime < _worldTime then
-				game.BoonStacker_NextCycleTime = _worldTime + cycleInterval
-			else
-				game.BoonStacker_NextCycleTime = game.BoonStacker_NextCycleTime + cycleInterval
-			end
-		end
-		
-		for slot, traits in pairs(game.BoonStacker_StackedTraits) do
-			if #traits > 1 then
-				local currentIndex = game.BoonStacker_CurrentTraitIndex[slot]
-				if not currentIndex or currentIndex < 1 or currentIndex > #traits then
-					currentIndex = 1
-				end
-				local oldTrait = traits[currentIndex]
-				
-				currentIndex = currentIndex + 1
-				if currentIndex > #traits then currentIndex = 1 end
-				game.BoonStacker_CurrentTraitIndex[slot] = currentIndex
-				
-				local newTrait = traits[currentIndex]
-				
-				game.BoonStacker_CyclingUpdates = true
-				pcall(function()
-					if oldTrait then game.TraitUIRemove(oldTrait) end
-					if newTrait then game.TraitUIAdd(newTrait, { Show = true }) end
-				end)
-				game.BoonStacker_CyclingUpdates = false
-			end
-		end
-	end
 end
 
 function game.ShowTraitUI( args )
@@ -492,9 +423,6 @@ function game.ShowTraitUI( args )
     end
 
 	-- print("BS_DEBUG: ShowTraitUI called")
-	
-	game.BoonStacker_CycleId = (game.BoonStacker_CycleId or 0) + 1
-	game.BoonStacker_NextCycleTime = nil
 	
 	if game.BoonStacker_CurrentTraitIndex == nil then
 		game.BoonStacker_CurrentTraitIndex = {}
@@ -513,50 +441,21 @@ function game.ShowTraitUI( args )
 	end
 	
 	local slotsToClear = {}
-	local slotsToReset = {}
 	for slot, index in pairs(game.BoonStacker_CurrentTraitIndex) do
 		local count = slotCounts[slot] or 0
 		if count == 0 then
 			table.insert(slotsToClear, slot)
-		elseif index > count then
-			table.insert(slotsToReset, slot)
 		end
 	end
 	
 	for _, slot in ipairs(slotsToClear) do
 		game.BoonStacker_CurrentTraitIndex[slot] = nil
 	end
-	
-	for _, slot in ipairs(slotsToReset) do
-		game.BoonStacker_CurrentTraitIndex[slot] = 1
-	end
 
 	game.BoonStacker_StackedTraits = {}
 	
 	local result = originals.ShowTraitUI( args )
 	
-	slotCounts = {}
-	if game.CurrentRun and game.CurrentRun.Hero and game.CurrentRun.Hero.Traits then
-		for _, trait in pairs(game.CurrentRun.Hero.Traits) do
-			if game.IsShownInHUD(trait) then
-				local slot = GetTraitSlot(trait)
-				if IsHudSlot(slot) then
-					slotCounts[slot] = (slotCounts[slot] or 0) + 1
-				end
-			end
-		end
-	end
-	
-	for slot, traits in pairs(game.BoonStacker_StackedTraits) do
-		local count = #traits
-		local index = game.BoonStacker_CurrentTraitIndex[slot]
-		if index and index > count then
-			game.BoonStacker_CurrentTraitIndex[slot] = 1
-		end
-	end
-	
-	local currentId = game.BoonStacker_CycleId
-	
-	game.thread( function() game.BoonStacker_CycleSlots(currentId, slotCounts) end )
+    -- Cycling removed
 	return result
 end
