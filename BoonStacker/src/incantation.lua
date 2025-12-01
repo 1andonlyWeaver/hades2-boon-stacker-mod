@@ -11,7 +11,17 @@ local unlockCost = {
     MixerQBoss = 1, -- Void Lens
 }
 
-if config.UseEasyUnlock then
+-- Check config, defaulting to true if missing
+local useEasy = true
+if config then
+    if config.EasyUnlock ~= nil then
+        useEasy = config.EasyUnlock
+    end
+else
+    print("BoonStacker: Config table is nil!")
+end
+
+if useEasy then
     unlockCost = {
         PlantFMoly = 1, -- Moly
     }
