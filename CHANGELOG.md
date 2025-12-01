@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- **UI**:
+  - "Stacked" boons now appear in the boon menu list.
+- **Bug Fixes**:
+  - Fixed a bug where stacked boons' images were causing crashes.
+
 ## [0.1.1] - 2025-12-01
 
 - Initial release.
