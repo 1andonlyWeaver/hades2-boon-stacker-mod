@@ -18,7 +18,9 @@ if not BoonStacker.Originals then
         TraitUIAdd = game.TraitUIAdd,
         TraitUIRemove = game.TraitUIRemove,
         ShowTraitUI = game.ShowTraitUI,
-        GetEligibleUpgrades = game.GetEligibleUpgrades
+        GetEligibleUpgrades = game.GetEligibleUpgrades,
+        Load = game.Load,
+        StartNewGame = game.StartNewGame
     }
 end
 
@@ -55,6 +57,28 @@ end
 -- Initial check on load
 if public.BoonStacker.IsUnlocked() then
     public.BoonStacker.EnableLogic()
+else
+    public.BoonStacker.DisableLogic()
+end
+
+-- Override Load to check status on save load
+function game.Load( data )
+    originals.Load(data)
+    if public.BoonStacker.IsUnlocked() then
+        public.BoonStacker.EnableLogic()
+    else
+        public.BoonStacker.DisableLogic()
+    end
+end
+
+-- Override StartNewGame to reset/check status
+function game.StartNewGame( mapName )
+    originals.StartNewGame(mapName)
+     if public.BoonStacker.IsUnlocked() then
+        public.BoonStacker.EnableLogic()
+    else
+        public.BoonStacker.DisableLogic()
+    end
 end
 
 -- Override GetPriorityTraits

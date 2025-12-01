@@ -10,7 +10,3 @@
 import 'BoonStacker.lua'
 import 'incantation.lua'
 
--- Debug and Fix Save State (Threaded to wait for GameState)
--- Note: Using pcall/xpcall or ensuring globals exist before threading is safer
--- But since we are done debugging, we should remove this block entirely to avoid the SessionMapState crash
-
