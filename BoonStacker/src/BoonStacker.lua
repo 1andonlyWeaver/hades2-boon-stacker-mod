@@ -17,7 +17,8 @@ if not BoonStacker.Originals then
         IsShownInHUD = game.IsShownInHUD,
         TraitUIAdd = game.TraitUIAdd,
         TraitUIRemove = game.TraitUIRemove,
-        ShowTraitUI = game.ShowTraitUI
+        ShowTraitUI = game.ShowTraitUI,
+        GetEligibleUpgrades = game.GetEligibleUpgrades
     }
 end
 
@@ -70,17 +71,52 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 
 	local priorityOptions = {}
 	local traitsWithGuaranteedSlot = {}
+	local occupiedSlots = {}
+
+    -- Robustly check for occupied slots
+    local hero = game.CurrentRun and game.CurrentRun.Hero
+    if hero and hero.Traits then
+        for _, trait in pairs(hero.Traits) do
+            if trait.Name then
+                local tData = game.TraitData[trait.Name]
+                if tData then
+                    local slot = tData.Slot or tData.OriginalSlot
+                    if slot then
+                        -- Manual check for guaranteed slots to avoid dependency issues
+                        for _, gSlot in ipairs(guaranteedSlots) do
+                            if gSlot == slot then
+                                occupiedSlots[slot] = true
+                                -- print("BS_DEBUG: Slot " .. tostring(slot) .. " occupied by " .. tostring(trait.Name))
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
 
 	for index, traitName in ipairs(traitNames) do
 		local traitData = game.TraitData[traitName]
 		if traitData and (lootData.StripRequirements or game.IsTraitEligible( traitData )) then
 			if not game.HeroHasTrait(traitName) then
-				local data = { ItemName = traitName, Type = "Trait"}
-				table.insert(priorityOptions, data)
-				
 				local slot = traitData.Slot or traitData.OriginalSlot
-				if slot and game.Contains(guaranteedSlots, slot) then
-					table.insert(traitsWithGuaranteedSlot, traitName)
+                local isGuaranteedSlot = false
+                if slot then
+                    for _, gSlot in ipairs(guaranteedSlots) do
+                        if gSlot == slot then isGuaranteedSlot = true break end
+                    end
+                end
+
+                -- Only add to priority options if the slot is NOT occupied (or it's not a guaranteed slot type)
+                -- This ensures filled slots are not forced, but can still appear via general loot logic
+				if not isGuaranteedSlot or not occupiedSlots[slot] then
+					local data = { ItemName = traitName, Type = "Trait"}
+					table.insert(priorityOptions, data)
+					
+					if isGuaranteedSlot then
+						table.insert(traitsWithGuaranteedSlot, traitName)
+					end
 				end
 			end
 		end
@@ -96,7 +132,14 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 		local traitData = game.TraitData[option.ItemName]
 		if traitData then
 			local slot = traitData.Slot or traitData.OriginalSlot
-			if slot and game.Contains(guaranteedSlots, slot) then
+            local isGuaranteedSlot = false
+            if slot then
+                for _, gSlot in ipairs(guaranteedSlots) do
+                    if gSlot == slot then isGuaranteedSlot = true break end
+                end
+            end
+
+			if isGuaranteedSlot and not occupiedSlots[slot] then
 				hasGuarantee = true
 			end
 		end
@@ -126,6 +169,74 @@ function game.GetReplacementTraits( ... )
     end
 	print("BoonStacker: GetReplacementTraits blocking replacement")
 	return {}
+end
+
+-- Override GetEligibleUpgrades to reduce probability of stacked boons
+function game.GetEligibleUpgrades( upgradeOptions, lootData, upgradeChoiceData )
+    if not public.BoonStacker.IsUnlocked() then
+        return originals.GetEligibleUpgrades(upgradeOptions, lootData, upgradeChoiceData)
+    end
+
+    -- Get the original list of eligible upgrades
+    local eligibleOptions = originals.GetEligibleUpgrades(upgradeOptions, lootData, upgradeChoiceData)
+    
+    -- Count existing traits in guaranteed slots
+    local slotCounts = {}
+    local hero = game.CurrentRun and game.CurrentRun.Hero
+    if hero and hero.Traits then
+        for _, trait in pairs(hero.Traits) do
+            if trait.Name then
+                local tData = game.TraitData[trait.Name]
+                if tData then
+                    local slot = tData.Slot or tData.OriginalSlot
+                    if slot then
+                        -- Check if it's a guaranteed slot
+                        for _, gSlot in ipairs(guaranteedSlots) do
+                            if gSlot == slot then
+                                slotCounts[slot] = (slotCounts[slot] or 0) + 1
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    -- Filter based on probability
+    local filteredOptions = {}
+    for i, option in ipairs(eligibleOptions) do
+        local keep = true
+        local traitData = game.TraitData[option.ItemName]
+        if traitData then
+            local slot = traitData.Slot or traitData.OriginalSlot
+            if slot and slotCounts[slot] and slotCounts[slot] > 0 then
+                -- Calculate probability: 1 / (1 + (count * scalar))
+                -- Default Scalar 1.0:
+                -- Count = 1 -> 50% chance
+                -- Count = 2 -> 33% chance
+                local scalar = 1.0
+                if config and config.StackPenaltyScalar then
+                    scalar = config.StackPenaltyScalar
+                end
+                
+                local probability = 1.0 / (1 + (slotCounts[slot] * scalar))
+                
+                if not game.RandomChance(probability) then
+                    keep = false
+                    -- print("BoonStacker: Reducing probability for " .. tostring(option.ItemName) .. " in slot " .. tostring(slot) .. " (Count: " .. tostring(slotCounts[slot]) .. ") - REMOVED")
+                else
+                    -- print("BoonStacker: Reducing probability for " .. tostring(option.ItemName) .. " in slot " .. tostring(slot) .. " (Count: " .. tostring(slotCounts[slot]) .. ") - KEPT")
+                end
+            end
+        end
+        
+        if keep then
+            table.insert(filteredOptions, option)
+        end
+    end
+
+    return filteredOptions
 end
 
 -- Override HeroSlotFilled
@@ -398,7 +509,7 @@ function game.ShowTraitUI( args )
 
 	game.BoonStacker_StackedTraits = {}
 	
-	originals.ShowTraitUI( args )
+	local result = originals.ShowTraitUI( args )
 	
 	slotCounts = {}
 	if game.CurrentRun and game.CurrentRun.Hero and game.CurrentRun.Hero.Traits then
@@ -423,4 +534,5 @@ function game.ShowTraitUI( args )
 	local currentId = game.BoonStacker_CycleId
 	
 	game.thread( function() game.BoonStacker_CycleSlots(currentId, slotCounts) end )
+	return result
 end
