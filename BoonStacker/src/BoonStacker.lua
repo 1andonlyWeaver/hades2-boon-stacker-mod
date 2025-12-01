@@ -211,10 +211,17 @@ function game.GetEligibleUpgrades( upgradeOptions, lootData, upgradeChoiceData )
         if traitData then
             local slot = traitData.Slot or traitData.OriginalSlot
             if slot and slotCounts[slot] and slotCounts[slot] > 0 then
-                -- Calculate probability: 1 / (count + 1)
+                -- Calculate probability: 1 / (1 + (count * scalar))
+                -- Default Scalar 1.0:
                 -- Count = 1 -> 50% chance
                 -- Count = 2 -> 33% chance
-                local probability = 1.0 / (slotCounts[slot] + 1)
+                local scalar = 1.0
+                if config and config.StackPenaltyScalar then
+                    scalar = config.StackPenaltyScalar
+                end
+                
+                local probability = 1.0 / (1 + (slotCounts[slot] * scalar))
+                
                 if not game.RandomChance(probability) then
                     keep = false
                     -- print("BoonStacker: Reducing probability for " .. tostring(option.ItemName) .. " in slot " .. tostring(slot) .. " (Count: " .. tostring(slotCounts[slot]) .. ") - REMOVED")
