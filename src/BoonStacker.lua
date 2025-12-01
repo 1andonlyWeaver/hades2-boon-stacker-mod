@@ -280,7 +280,6 @@ end
 
 game.BoonStacker_StackedTraits = {}
 game.BoonStacker_CurrentTraitIndex = {}
--- Removed cycling globals
 
 local function GetTraitSlot(trait)
 	return trait.Slot or trait.OriginalSlot
@@ -344,7 +343,7 @@ function game.TraitUIAdd( trait, args )
 			table.insert(game.BoonStacker_StackedTraits[slot], trait)
 		end
 		
-		if game.BoonStacker_CurrentTraitIndex[slot] == nil or game.BoonStacker_CurrentTraitIndex[slot] < 1 then
+		if game.BoonStacker_CurrentTraitIndex[slot] == nil or game.BoonStacker_CurrentTraitIndex[slot] < 1 or game.BoonStacker_CurrentTraitIndex[slot] > #game.BoonStacker_StackedTraits[slot] then
 			game.BoonStacker_CurrentTraitIndex[slot] = 1
 		end
 		
@@ -397,7 +396,12 @@ function game.TraitUIRemove( trait )
 			for i, t in ipairs(game.BoonStacker_StackedTraits[slot]) do
 				if t == trait then
                     local currentIndex = game.BoonStacker_CurrentTraitIndex[slot] or 1
-                    if i == currentIndex then wasCurrent = true end
+                    if i == currentIndex then 
+						wasCurrent = true 
+					elseif i < currentIndex then
+						-- If we remove an item before the current index, shift current index down
+						game.BoonStacker_CurrentTraitIndex[slot] = currentIndex - 1
+					end
 
 					table.remove(game.BoonStacker_StackedTraits[slot], i)
 					break
@@ -419,7 +423,10 @@ function game.TraitUIRemove( trait )
              game.BoonStacker_CurrentTraitIndex[slot] = 1
              local newTrait = game.BoonStacker_StackedTraits[slot][1]
              if newTrait then
-                 game.TraitUIAdd(newTrait, { Show = true })
+                 local status, err = pcall(function() game.TraitUIAdd(newTrait, { Show = true }) end)
+                 if not status then
+                    print("BS_DEBUG: Error updating trait UI: " .. tostring(err))
+                 end
              end
         end
 		
@@ -445,8 +452,21 @@ function game.ShowTraitUI( args )
 	
 	local slotCounts = {}
 	if game.CurrentRun and game.CurrentRun.Hero and game.CurrentRun.Hero.Traits then
-		for _, trait in ipairs(game.CurrentRun.Hero.Traits) do
+		for _, trait in pairs(game.CurrentRun.Hero.Traits) do
+			local addToStack = false
 			if not trait.Hidden then
+				local slot = GetTraitSlot(trait)
+				if IsHudSlot(slot) then
+					local prevSlot = trait.Slot
+					trait.Slot = slot
+					if originals.IsShownInHUD(trait) then
+						addToStack = true
+					end
+					trait.Slot = prevSlot
+				end
+			end
+
+			if addToStack then
 				local slot = GetTraitSlot(trait)
 				if IsHudSlot(slot) then
 					slotCounts[slot] = (slotCounts[slot] or 0) + 1
@@ -461,15 +481,22 @@ function game.ShowTraitUI( args )
 	end
 	
 	local slotsToClear = {}
+	local slotsToReset = {}
 	for slot, index in pairs(game.BoonStacker_CurrentTraitIndex) do
 		local count = slotCounts[slot] or 0
 		if count == 0 then
 			table.insert(slotsToClear, slot)
+		elseif index > count then
+			table.insert(slotsToReset, slot)
 		end
 	end
 	
 	for _, slot in ipairs(slotsToClear) do
 		game.BoonStacker_CurrentTraitIndex[slot] = nil
+	end
+	
+	for _, slot in ipairs(slotsToReset) do
+		game.BoonStacker_CurrentTraitIndex[slot] = 1
 	end
 	
 	local result = originals.ShowTraitUI( args )

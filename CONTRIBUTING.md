@@ -8,12 +8,12 @@ This section guides you through submitting a bug report for the mod. Following t
 
 ### Before Submitting a Bug Report
 
-*   **Check the [issue tracker](../../issues)** to see if the problem has already been reported.
+*   **Check the [issue tracker](https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/issues)** to see if the problem has already been reported.
 *   **Ensure you are using the latest version** of the mod.
 
 ### How to Submit a Good Bug Report
 
-Bugs are tracked as GitHub issues. Create an issue on the repository and provide the following information by filling in the [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.md):
+Bugs are tracked as GitHub issues. Create an issue on the repository and provide the following information by filling in the [Bug Report](https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/issues/new/choose):
 
 *   **Use a clear and descriptive title** for the issue to identify the problem.
 *   **Describe the bug** clearly and concisely.
@@ -30,7 +30,7 @@ This section guides you through submitting an enhancement suggestion for the mod
 
 ### How to Submit an Enhancement Suggestion
 
-Enhancement suggestions are tracked as GitHub issues. Create an issue on the repository and provide the following information by filling in the [Feature Request template](.github/ISSUE_TEMPLATE/feature_request.md):
+Enhancement suggestions are tracked as GitHub issues. Create an issue on the repository and provide the following information by filling in the [Feature Request](https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/issues/new/choose):
 
 *   **Use a clear and descriptive title** for the issue to identify the suggestion.
 *   **Problem Description**: Is your feature request related to a problem? Please describe it.
