@@ -17,7 +17,8 @@ if not BoonStacker.Originals then
         IsShownInHUD = game.IsShownInHUD,
         TraitUIAdd = game.TraitUIAdd,
         TraitUIRemove = game.TraitUIRemove,
-        ShowTraitUI = game.ShowTraitUI
+        ShowTraitUI = game.ShowTraitUI,
+        GetEligibleUpgrades = game.GetEligibleUpgrades
     }
 end
 
@@ -168,6 +169,67 @@ function game.GetReplacementTraits( ... )
     end
 	print("BoonStacker: GetReplacementTraits blocking replacement")
 	return {}
+end
+
+-- Override GetEligibleUpgrades to reduce probability of stacked boons
+function game.GetEligibleUpgrades( upgradeOptions, lootData, upgradeChoiceData )
+    if not public.BoonStacker.IsUnlocked() then
+        return originals.GetEligibleUpgrades(upgradeOptions, lootData, upgradeChoiceData)
+    end
+
+    -- Get the original list of eligible upgrades
+    local eligibleOptions = originals.GetEligibleUpgrades(upgradeOptions, lootData, upgradeChoiceData)
+    
+    -- Count existing traits in guaranteed slots
+    local slotCounts = {}
+    local hero = game.CurrentRun and game.CurrentRun.Hero
+    if hero and hero.Traits then
+        for _, trait in pairs(hero.Traits) do
+            if trait.Name then
+                local tData = game.TraitData[trait.Name]
+                if tData then
+                    local slot = tData.Slot or tData.OriginalSlot
+                    if slot then
+                        -- Check if it's a guaranteed slot
+                        for _, gSlot in ipairs(guaranteedSlots) do
+                            if gSlot == slot then
+                                slotCounts[slot] = (slotCounts[slot] or 0) + 1
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    -- Filter based on probability
+    local filteredOptions = {}
+    for i, option in ipairs(eligibleOptions) do
+        local keep = true
+        local traitData = game.TraitData[option.ItemName]
+        if traitData then
+            local slot = traitData.Slot or traitData.OriginalSlot
+            if slot and slotCounts[slot] and slotCounts[slot] > 0 then
+                -- Calculate probability: 1 / (count + 1)
+                -- Count = 1 -> 50% chance
+                -- Count = 2 -> 33% chance
+                local probability = 1.0 / (slotCounts[slot] + 1)
+                if not game.RandomChance(probability) then
+                    keep = false
+                    -- print("BoonStacker: Reducing probability for " .. tostring(option.ItemName) .. " in slot " .. tostring(slot) .. " (Count: " .. tostring(slotCounts[slot]) .. ") - REMOVED")
+                else
+                    -- print("BoonStacker: Reducing probability for " .. tostring(option.ItemName) .. " in slot " .. tostring(slot) .. " (Count: " .. tostring(slotCounts[slot]) .. ") - KEPT")
+                end
+            end
+        end
+        
+        if keep then
+            table.insert(filteredOptions, option)
+        end
+    end
+
+    return filteredOptions
 end
 
 -- Override HeroSlotFilled
