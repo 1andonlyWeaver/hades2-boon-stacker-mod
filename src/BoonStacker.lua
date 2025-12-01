@@ -428,13 +428,20 @@ function game.ShowTraitUI( args )
 		game.BoonStacker_CurrentTraitIndex = {}
 	end
 	
+	game.BoonStacker_StackedTraits = {}
+	
 	local slotCounts = {}
 	if game.CurrentRun and game.CurrentRun.Hero and game.CurrentRun.Hero.Traits then
-		for _, trait in pairs(game.CurrentRun.Hero.Traits) do
+		for _, trait in ipairs(game.CurrentRun.Hero.Traits) do
 			if game.IsShownInHUD(trait) then
 				local slot = GetTraitSlot(trait)
 				if IsHudSlot(slot) then
 					slotCounts[slot] = (slotCounts[slot] or 0) + 1
+					
+					if not game.BoonStacker_StackedTraits[slot] then
+						game.BoonStacker_StackedTraits[slot] = {}
+					end
+					table.insert(game.BoonStacker_StackedTraits[slot], trait)
 				end
 			end
 		end
@@ -451,8 +458,6 @@ function game.ShowTraitUI( args )
 	for _, slot in ipairs(slotsToClear) do
 		game.BoonStacker_CurrentTraitIndex[slot] = nil
 	end
-
-	game.BoonStacker_StackedTraits = {}
 	
 	local result = originals.ShowTraitUI( args )
 	
