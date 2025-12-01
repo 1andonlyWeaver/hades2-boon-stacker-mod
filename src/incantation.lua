@@ -101,6 +101,12 @@ Incantations.addIncantation({
         -- Refund the token cost as well
         game.AddResource("PlantFMoly", 1, "BoonStacker_Refund")
 
+        -- Clear the unlock flag IMMEDIATELY to prevent race conditions if the game is saved/loaded
+        -- before the thread runs.
+        if game.GameState and game.GameState.WorldUpgrades then
+            game.GameState.WorldUpgrades.BoonStacker_Unlock = nil
+        end
+
         -- Disable Logic
         if BoonStacker and BoonStacker.DisableLogic then
             print("BoonStacker: Disable Incantation enabled, deactivating logic.")
@@ -116,6 +122,7 @@ Incantations.addIncantation({
                 game.wait(0.5) -- Wait longer to ensure processing completes
                 
                 if game.GameState.WorldUpgrades then
+                     -- Ensure cleared (already done above, but safe to repeat)
                      game.GameState.WorldUpgrades.BoonStacker_Unlock = nil
                      game.GameState.WorldUpgrades.BoonStacker_Disable = nil
                 end
