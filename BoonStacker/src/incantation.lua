@@ -43,6 +43,12 @@ Incantations.addIncantation({
         else
             print("BoonStacker: Incantation enabled, but logic not found!")
         end
+
+        -- When we unlock the mod, we should reset the 'Disable' incantation history
+        -- so that it can be bought again (if the user previously disabled it).
+        if game.GameState and game.GameState.WorldUpgradesAdded then
+            game.GameState.WorldUpgradesAdded.BoonStacker_Disable_v3 = nil
+        end
 	end,
     OnDisabled = function(source, incantationId)
         if BoonStacker and BoonStacker.DisableLogic then
@@ -55,17 +61,17 @@ Incantations.addIncantation({
 })
 
 Incantations.addIncantation({
-    Id = "BoonStacker_Disable",
+    Id = "BoonStacker_Disable_v3",
     Name = "Separation of Divine Favor",
     Description = "Disables the boon stacking effect and refunds the resources used to unlock it.",
     FlavorText = "Maybe you can have too much of a good thing.",
     WorldUpgradeData = {
-        InheritFrom = { "DefaultInstantItem" },
+        InheritFrom = { "DefaultMinorItem" },
         Icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue", 
         Cost = {
             PlantFMoly = 1,
         },
-        AlwaysRevealImmediately = true, 
+        AlwaysRevealImmediately = true,
         GameStateRequirements = {
              {
                  PathTrue = { "GameState", "WorldUpgrades", "BoonStacker_Unlock" },
@@ -94,36 +100,32 @@ Incantations.addIncantation({
 
         -- Cleanup State
         if game.GameState then
-            -- Remove from active upgrades
-            if game.GameState.WorldUpgrades then
-                game.GameState.WorldUpgrades.BoonStacker_Unlock = nil
-                -- We also need to clear Disable so it doesn't show as "Cast" permanently
-                -- But we do this in a thread to allow the current activation to finish?
-                -- Actually, if we clear it immediately, it might not register as "Cast" in the UI log, which is fine.
-                -- But we want to be able to buy Unlock again.
-            end
-            
-            -- Remove from history so they can be bought again
-            if game.GameState.WorldUpgradesAdded then
-                game.GameState.WorldUpgradesAdded.BoonStacker_Unlock = nil
-                
-                -- We probably want to keep BoonStacker_Disable in history? 
-                -- If we remove it, it might reappear immediately if requirements are met.
-                -- Wait, the requirement for Disable is "Have Unlock".
-                -- If we remove Unlock, Disable disappears from available list.
-                -- So we just need to ensure Unlock reappears in available list.
-                -- Unlock reappears if it is NOT in WorldUpgradesAdded.
-            end
-
             -- Reset this incantation so it can be used again if needed
+            -- We do this in a thread to ensure we don't interfere with the current frame's processing
+            -- and to ensure the game doesn't re-add flags immediately.
             game.thread(function()
-                game.wait(0.1) -- Wait a frame to ensure processing completes
+                game.wait(0.5) -- Wait longer to ensure processing completes
+                print("BoonStacker: Cleanup Thread Started")
+                
                 if game.GameState.WorldUpgrades then
-                     game.GameState.WorldUpgrades.BoonStacker_Disable = nil
+                     print("BoonStacker: Clearing WorldUpgrades...")
+                     game.GameState.WorldUpgrades.BoonStacker_Unlock = nil
+                     game.GameState.WorldUpgrades.BoonStacker_Disable_v3 = nil
                 end
+                
                 if game.GameState.WorldUpgradesAdded then
-                     game.GameState.WorldUpgradesAdded.BoonStacker_Disable = nil
+                     print("BoonStacker: Clearing WorldUpgradesAdded...")
+                     game.GameState.WorldUpgradesAdded.BoonStacker_Unlock = nil
+                     
+                     -- CRITICAL CHANGE: Do NOT clear BoonStacker_Disable_v3 from Added history yet.
+                     -- If we clear it now, the game might think "It's not bought" and show it again 
+                     -- (possibly due to cached requirements evaluating true).
+                     -- We will let it stay "Bought" until the user buys Unlock again (see Unlock.OnEnabled).
+                     
+                     -- game.GameState.WorldUpgradesAdded.BoonStacker_Disable_v3 = nil
                 end
+                
+                print("BoonStacker: Cleanup Complete")
             end)
         end
     end,
