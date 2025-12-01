@@ -70,6 +70,19 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 
 	local priorityOptions = {}
 	local traitsWithGuaranteedSlot = {}
+	local occupiedSlots = {}
+
+	if game.CurrentRun and game.CurrentRun.Hero and game.CurrentRun.Hero.Traits then
+		for _, trait in pairs(game.CurrentRun.Hero.Traits) do
+			if trait.Name and game.TraitData[trait.Name] then
+				local tData = game.TraitData[trait.Name]
+				local slot = tData.Slot or tData.OriginalSlot
+				if slot and game.Contains(guaranteedSlots, slot) then
+					occupiedSlots[slot] = true
+				end
+			end
+		end
+	end
 
 	for index, traitName in ipairs(traitNames) do
 		local traitData = game.TraitData[traitName]
@@ -79,7 +92,7 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 				table.insert(priorityOptions, data)
 				
 				local slot = traitData.Slot or traitData.OriginalSlot
-				if slot and game.Contains(guaranteedSlots, slot) then
+				if slot and game.Contains(guaranteedSlots, slot) and not occupiedSlots[slot] then
 					table.insert(traitsWithGuaranteedSlot, traitName)
 				end
 			end
@@ -96,7 +109,7 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 		local traitData = game.TraitData[option.ItemName]
 		if traitData then
 			local slot = traitData.Slot or traitData.OriginalSlot
-			if slot and game.Contains(guaranteedSlots, slot) then
+			if slot and game.Contains(guaranteedSlots, slot) and not occupiedSlots[slot] then
 				hasGuarantee = true
 			end
 		end
@@ -398,7 +411,7 @@ function game.ShowTraitUI( args )
 
 	game.BoonStacker_StackedTraits = {}
 	
-	originals.ShowTraitUI( args )
+	local result = originals.ShowTraitUI( args )
 	
 	slotCounts = {}
 	if game.CurrentRun and game.CurrentRun.Hero and game.CurrentRun.Hero.Traits then
@@ -423,4 +436,5 @@ function game.ShowTraitUI( args )
 	local currentId = game.BoonStacker_CycleId
 	
 	game.thread( function() game.BoonStacker_CycleSlots(currentId, slotCounts) end )
+	return result
 end
