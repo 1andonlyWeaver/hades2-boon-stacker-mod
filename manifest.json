@@ -1,0 +1,16 @@
+{
+    "name": "BoonStacker",
+    "version_number": "0.1.0",
+    "website_url": "",
+    "description": "Allows players to stack boons in core slots (Attack, Special, Cast, Sprint, Magick) without replacing existing ones.",
+    "dependencies": [
+        "Hell2Modding-Hell2Modding-1.0.70",
+        "LuaENVY-ENVY-1.2.0",
+        "SGG_Modding-Chalk-2.1.1",
+        "SGG_Modding-ReLoad-1.0.2",
+        "SGG_Modding-SJSON-1.0.0",
+        "SGG_Modding-ModUtil-4.0.1",
+        "BlueRaja-IncantationsAPI-1.0.0"
+    ]
+}
+
