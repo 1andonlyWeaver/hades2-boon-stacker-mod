@@ -302,6 +302,19 @@ function game.IsShownInHUD( trait )
 	end
 	local slot = GetTraitSlot(trait)
 	if IsHudSlot(slot) then
+		-- Check if trait is stacked and NOT the current/oldest one
+		if game.BoonStacker_StackedTraits[slot] then
+			local currentIndex = game.BoonStacker_CurrentTraitIndex[slot] or 1
+			for i, t in ipairs(game.BoonStacker_StackedTraits[slot]) do
+				if t == trait then
+					if i ~= currentIndex then
+						return false
+					end
+					break
+				end
+			end
+		end
+
 		local prevSlot = trait.Slot
 		trait.Slot = slot
 		local isShown = originals.IsShownInHUD(trait)
@@ -433,7 +446,7 @@ function game.ShowTraitUI( args )
 	local slotCounts = {}
 	if game.CurrentRun and game.CurrentRun.Hero and game.CurrentRun.Hero.Traits then
 		for _, trait in ipairs(game.CurrentRun.Hero.Traits) do
-			if game.IsShownInHUD(trait) then
+			if not trait.Hidden then
 				local slot = GetTraitSlot(trait)
 				if IsHudSlot(slot) then
 					slotCounts[slot] = (slotCounts[slot] or 0) + 1
