@@ -72,28 +72,50 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 	local traitsWithGuaranteedSlot = {}
 	local occupiedSlots = {}
 
-	if game.CurrentRun and game.CurrentRun.Hero and game.CurrentRun.Hero.Traits then
-		for _, trait in pairs(game.CurrentRun.Hero.Traits) do
-			if trait.Name and game.TraitData[trait.Name] then
-				local tData = game.TraitData[trait.Name]
-				local slot = tData.Slot or tData.OriginalSlot
-				if slot and game.Contains(guaranteedSlots, slot) then
-					occupiedSlots[slot] = true
-				end
-			end
-		end
-	end
+    -- Robustly check for occupied slots
+    local hero = game.CurrentRun and game.CurrentRun.Hero
+    if hero and hero.Traits then
+        for _, trait in pairs(hero.Traits) do
+            if trait.Name then
+                local tData = game.TraitData[trait.Name]
+                if tData then
+                    local slot = tData.Slot or tData.OriginalSlot
+                    if slot then
+                        -- Manual check for guaranteed slots to avoid dependency issues
+                        for _, gSlot in ipairs(guaranteedSlots) do
+                            if gSlot == slot then
+                                occupiedSlots[slot] = true
+                                -- print("BS_DEBUG: Slot " .. tostring(slot) .. " occupied by " .. tostring(trait.Name))
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
 
 	for index, traitName in ipairs(traitNames) do
 		local traitData = game.TraitData[traitName]
 		if traitData and (lootData.StripRequirements or game.IsTraitEligible( traitData )) then
 			if not game.HeroHasTrait(traitName) then
-				local data = { ItemName = traitName, Type = "Trait"}
-				table.insert(priorityOptions, data)
-				
 				local slot = traitData.Slot or traitData.OriginalSlot
-				if slot and game.Contains(guaranteedSlots, slot) and not occupiedSlots[slot] then
-					table.insert(traitsWithGuaranteedSlot, traitName)
+                local isGuaranteedSlot = false
+                if slot then
+                    for _, gSlot in ipairs(guaranteedSlots) do
+                        if gSlot == slot then isGuaranteedSlot = true break end
+                    end
+                end
+
+                -- Only add to priority options if the slot is NOT occupied (or it's not a guaranteed slot type)
+                -- This ensures filled slots are not forced, but can still appear via general loot logic
+				if not isGuaranteedSlot or not occupiedSlots[slot] then
+					local data = { ItemName = traitName, Type = "Trait"}
+					table.insert(priorityOptions, data)
+					
+					if isGuaranteedSlot then
+						table.insert(traitsWithGuaranteedSlot, traitName)
+					end
 				end
 			end
 		end
@@ -109,7 +131,14 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 		local traitData = game.TraitData[option.ItemName]
 		if traitData then
 			local slot = traitData.Slot or traitData.OriginalSlot
-			if slot and game.Contains(guaranteedSlots, slot) and not occupiedSlots[slot] then
+            local isGuaranteedSlot = false
+            if slot then
+                for _, gSlot in ipairs(guaranteedSlots) do
+                    if gSlot == slot then isGuaranteedSlot = true break end
+                end
+            end
+
+			if isGuaranteedSlot and not occupiedSlots[slot] then
 				hasGuarantee = true
 			end
 		end
