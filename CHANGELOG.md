@@ -7,17 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
--   Initial release.
--   **Core Logic**:
-    -   Implemented logic to bypass occupied slot checks (`GetPriorityTraits`).
-    -   Disabled boon replacement logic (`GetReplacementTraits`).
-    -   Overrode slot status checks (`HeroSlotFilled`).
--   **Incantation System**:
-    -   Added "Superposition of Divine Favor" incantation to unlock the boon stacking capability.
-    -   Added "Separation of Divine Favor" incantation to disable the mod and refund resources.
--   **Balancing**:
-    -   Implemented probability reduction for finding boons for slots that are already occupied (configurable).
--   **Configuration**:
-    -   Added `config.lua` with options for `EasyUnlock` (recipe cost) and `StackPenaltyScalar` (probability balancing).
+## [0.1.1] - 2025-12-01
 
-[Unreleased]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod
+- Initial release.
+- **Core Logic**:
+  - Implemented logic to bypass occupied slot checks (`GetPriorityTraits`).
+  - Disabled boon replacement logic (`GetReplacementTraits`).
+  - Overrode slot status checks (`HeroSlotFilled`).
+- **Incantation System**:
+  - Added "Superposition of Divine Favor" incantation to unlock the boon stacking capability.
+  - Added "Separation of Divine Favor" incantation to disable the mod and refund resources.
+- **Balancing**:
+  - Implemented probability reduction for finding boons for slots that are already occupied (configurable).
+- **Configuration**:
+  - Added `config.lua` with options for `EasyUnlock` (recipe cost) and `StackPenaltyScalar` (probability balancing).
+
+[unreleased]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.1.1...HEAD
+[0.1.1]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/460451930f480b1fc003e2af594ab27e0f0d5553...0.1.1
