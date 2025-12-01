@@ -1,3 +1,6 @@
+# For local development
+/Scripts/
+
 # For files used only by a symlink to the ReturnOfModding plugins folder
 /src/LICENSE
 /src/icon.png
