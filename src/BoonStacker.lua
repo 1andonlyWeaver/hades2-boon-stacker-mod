@@ -201,6 +201,12 @@ function game.GetEligibleUpgrades( upgradeOptions, lootData, upgradeChoiceData )
         return originals.GetEligibleUpgrades(upgradeOptions, lootData, upgradeChoiceData)
     end
 
+    -- If this is a StackOnly upgrade (like Pom of Power), use original logic immediately
+    -- This prevents the penalty from applying to upgrades of existing boons
+    if lootData and lootData.StackOnly then
+        return originals.GetEligibleUpgrades(upgradeOptions, lootData, upgradeChoiceData)
+    end
+
     -- Get the original list of eligible upgrades
     local eligibleOptions = originals.GetEligibleUpgrades(upgradeOptions, lootData, upgradeChoiceData)
     
