@@ -48,6 +48,10 @@ You can adjust the mod's behavior by editing `config.lua` (if manually installed
 -   `StackPenaltyScalar` (Default: `1.0`)
     -   Adjusts the probability penalty for finding stacked boons. Higher values make it harder to find 3rd/4th stacks for the same slot. Set it to `0.0` for no penalization.
 
+## Feedback
+
+Please submit bug reports and feature requests via the [GitHub Issue Tracker](https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/issues).
+
 ## License
 
 MIT
