@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-12-03
+
 - **Bug Fixes**:
   - `StackOnly` upgrades (e.g., Pom of Power) are no longer subject to the stack penalty probability reduction.
 - **Documentation**:
@@ -34,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Configuration**:
   - Added `config.lua` with options for `EasyUnlock` (recipe cost) and `StackPenaltyScalar` (probability balancing).
 
-[unreleased]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.2.0...HEAD
+[unreleased]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.2.1...HEAD
+[0.2.1]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.1.1...0.2.0
 [0.1.1]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/460451930f480b1fc003e2af594ab27e0f0d5553...0.1.1
