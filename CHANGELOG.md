@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- **Bug Fixes**:
+  - `StackOnly` upgrades (e.g., Pom of Power) are no longer subject to the stack penalty probability reduction.
+- **Documentation**:
+  - Added Feedback section to README pointing to the GitHub Issue Tracker.
+
 ## [0.2.0] - 2025-12-01
 
 - **UI**:
