@@ -32,11 +32,13 @@ Then, extract the `BoonStacker` folder into your `Mods` directory.
 
 ## How to Use
 
-Installing the mod does not enable its effects immediately. You must unlock it within the game at the Crossroads Cauldron.
+By default, installing the mod does not enable its effects immediately. You must unlock it within the game at the Crossroads Cauldron.
 
 1.  **Superposition of Divine Favor**: Perform this incantation to enable Boon Stacking.
     *   *Cost (Default)*: 1 Moly
 2.  **Separation of Divine Favor**: If you wish to disable the mod's effects and return to standard rules, perform this incantation. It will refund the materials used for the unlock.
+
+**Skip Incantations**: If you prefer to skip the incantation system and have the mod enabled by default, set `SkipIncantations` to `true` in the configuration.
 
 ## Configuration
 
