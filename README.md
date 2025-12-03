@@ -1,6 +1,8 @@
 # BoonStacker
 
-**BoonStacker** is a Hades II mod that fundamentally changes the boon system by allowing you to **stack** boons on your core slots (Attack, Special, Cast, Sprint, Magick) instead of replacing them.
+**BoonStacker** transforms the boon system in Hades II, unlocking the ability to **stack** boons on your core slots (Attack, Special, Cast, Sprint, Magick) rather than being forced to replace them.
+
+Ever found a perfect boon but didn't want to sacrifice the one you already had? With BoonStacker, you don't have to choose. Combine the might of multiple Olympians on a single move to create devastating synergies and unique builds that simply weren't possible before.
 
 > **Disclaimer**: This mod significantly alters the game's balance. Stacking multiple gods' effects on a single move can lead to extremely powerful combinations.
 
