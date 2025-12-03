@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Configuration**:
   - Added `SkipIncantations` option (Default: `false`). When enabled, the mod is active immediately and incantations are removed from the game.
+  - Allowed for descriptions to appear when adjusting config in mod manager.
+- **Documentation**:
+  - Improved introduction text in README.
 
 ## [0.2.1] - 2025-12-03
 
