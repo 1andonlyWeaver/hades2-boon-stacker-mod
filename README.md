@@ -45,6 +45,9 @@ You can adjust the mod's behavior by editing `config.lua` (if manually installed
 -   `EasyUnlock` (Default: `true`)
     -   **True**: The incantation costs **1 Moly**. Useful for immediate access or testing.
     -   **False**: The incantation costs **1 Zodiac Sand** and **1 Void Lens**. This setting is intended for a balanced playthrough where this ability is treated as a significant mid-game upgrade that must be earned.
+-   `SkipIncantations` (Default: `false`)
+    -   **True**: The mod is active immediately upon loading the game. No incantations are required or shown in the cauldron.
+    -   **False**: You must unlock the mod via the incantation system.
 -   `StackPenaltyScalar` (Default: `1.0`)
     -   Adjusts the probability penalty for finding stacked boons. Higher values make it harder to find 3rd/4th stacks for the same slot. Set it to `0.0` for no penalization.
 
