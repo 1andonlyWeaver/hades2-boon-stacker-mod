@@ -27,7 +27,7 @@ if useEasy then
     }
 end
 
-if not config.SkipIncantations then
+if not (config and config.SkipIncantations) then
     Incantations.addIncantation({
         Id = "BoonStacker_Unlock",
         Name = "Superposition of Divine Favor",
