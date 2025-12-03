@@ -1,6 +1,8 @@
 # BoonStacker
 
-**BoonStacker** is a Hades II mod that fundamentally changes the boon system by allowing you to **stack** boons on your core slots (Attack, Special, Cast, Sprint, Magick) instead of replacing them.
+**BoonStacker** transforms the boon system in Hades II, unlocking the ability to **stack** boons on your core slots (Attack, Special, Cast, Sprint, Magick) rather than being forced to replace them.
+
+Ever found a perfect boon but didn't want to sacrifice the one you already had? With BoonStacker, you don't have to choose. Combine the might of multiple Olympians on a single move to create devastating synergies and unique builds that simply weren't possible before.
 
 > **Disclaimer**: This mod significantly alters the game's balance. Stacking multiple gods' effects on a single move can lead to extremely powerful combinations.
 
@@ -32,11 +34,13 @@ Then, extract the `BoonStacker` folder into your `Mods` directory.
 
 ## How to Use
 
-Installing the mod does not enable its effects immediately. You must unlock it within the game at the Crossroads Cauldron.
+By default, installing the mod does not enable its effects immediately. You must unlock it within the game at the Crossroads Cauldron.
 
 1.  **Superposition of Divine Favor**: Perform this incantation to enable Boon Stacking.
     *   *Cost (Default)*: 1 Moly
 2.  **Separation of Divine Favor**: If you wish to disable the mod's effects and return to standard rules, perform this incantation. It will refund the materials used for the unlock.
+
+**Skip Incantations**: If you prefer to skip the incantation system and have the mod enabled by default, set `SkipIncantations` to `true` in the configuration.
 
 ## Configuration
 
@@ -45,6 +49,9 @@ You can adjust the mod's behavior by editing `config.lua` (if manually installed
 -   `EasyUnlock` (Default: `true`)
     -   **True**: The incantation costs **1 Moly**. Useful for immediate access or testing.
     -   **False**: The incantation costs **1 Zodiac Sand** and **1 Void Lens**. This setting is intended for a balanced playthrough where this ability is treated as a significant mid-game upgrade that must be earned.
+-   `SkipIncantations` (Default: `false`)
+    -   **True**: The mod is active immediately upon loading the game. No incantations are required or shown in the cauldron.
+    -   **False**: You must unlock the mod via the incantation system.
 -   `StackPenaltyScalar` (Default: `1.0`)
     -   Adjusts the probability penalty for finding stacked boons. Higher values make it harder to find 3rd/4th stacks for the same slot. Set it to `0.0` for no penalization.
 

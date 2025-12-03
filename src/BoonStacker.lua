@@ -27,6 +27,9 @@ end
 local originals = public.BoonStacker.Originals
 
 function public.BoonStacker.IsUnlocked()
+    if config and config.SkipIncantations then
+        return true
+    end
     if game.GameState and game.GameState.WorldUpgrades and game.GameState.WorldUpgrades.BoonStacker_Unlock then
         return true
     end
