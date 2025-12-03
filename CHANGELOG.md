@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-12-03
+
 - **Configuration**:
   - Added `SkipIncantations` option (Default: `false`). When enabled, the mod is active immediately and incantations are removed from the game.
   - Allowed for descriptions to appear when adjusting config in mod manager.
@@ -15,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.2] - 2025-12-03
 
-- *Attempt 2 at previous patch*
+- _Attempt 2 at previous patch_
 
 ## [0.2.1] - 2025-12-03
 
@@ -46,7 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Configuration**:
   - Added `config.lua` with options for `EasyUnlock` (recipe cost) and `StackPenaltyScalar` (probability balancing).
 
-[unreleased]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.2.2...HEAD
+[unreleased]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.3.0...HEAD
+[0.3.0]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.2.2...0.3.0
 [0.2.2]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.2.1...0.2.2
 [0.2.1]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.1.1...0.2.0
