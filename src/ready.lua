@@ -10,36 +10,30 @@
 import 'BoonStacker.lua'
 import 'incantation.lua'
 
--- Try multiple approaches for text modification
+-- Supplemental Hymn text modifications using SJSON hooks
+-- The text might be in different files, so we hook multiple
+local supplementalHymnName = "Supplemental Hymn"
+local supplementalHymnDesc = "Stackable Boons will be offered as soon as possible, and your next gains +2 Lv."
 
--- Approach 1: SJSON hook (if available)
-if sjson and sjson.hook then
-    local success, err = pcall(function()
-        sjson.hook("Game/Text/en/HelpText.en.sjson", function(data)
-            data.LimitedSwapTraitDrop = "Supplemental Hymn"
-            data.LimitedSwapBonusTrait = "Supplemental Hymn"
-            print("BoonStacker: Applied SJSON text modifications")
-            return data
-        end)
-    end)
-    if not success then
-        print("BoonStacker: SJSON hook failed - " .. tostring(err))
-    end
-end
+-- Hook into TraitText.en.sjson (where trait/item names are stored)
+sjson.hook("Game/Text/en/TraitText.en.sjson", function(data)
+    -- Try various possible key formats
+    data.LimitedSwapTraitDrop = supplementalHymnName
+    data.LimitedSwapBonusTrait = supplementalHymnName
+    -- Also try with _Short suffix for descriptions
+    data.LimitedSwapTraitDrop_Short = supplementalHymnDesc
+    data.LimitedSwapBonusTrait_Short = supplementalHymnDesc
+    print("BoonStacker: Applied TraitText SJSON modifications")
+    return data
+end)
 
--- Approach 2: Direct modutil data modification (if ConsumableData exists)
-modutil.once_loaded.game(function()
-    -- Modify ConsumableData if it exists
-    if game.ConsumableData and game.ConsumableData.LimitedSwapTraitDrop then
-        -- Try to set a custom name property
-        game.ConsumableData.LimitedSwapTraitDrop.CustomName = "Supplemental Hymn"
-        print("BoonStacker: Modified ConsumableData.LimitedSwapTraitDrop")
-    end
-    
-    -- Modify TraitData if it exists
-    if game.TraitData and game.TraitData.LimitedSwapBonusTrait then
-        game.TraitData.LimitedSwapBonusTrait.CustomName = "Supplemental Hymn"
-        print("BoonStacker: Modified TraitData.LimitedSwapBonusTrait")
-    end
+-- Hook into HelpText.en.sjson as backup
+sjson.hook("Game/Text/en/HelpText.en.sjson", function(data)
+    data.LimitedSwapTraitDrop = supplementalHymnName
+    data.LimitedSwapBonusTrait = supplementalHymnName
+    data.LimitedSwapTraitDrop_Short = supplementalHymnDesc
+    data.LimitedSwapBonusTrait_Short = supplementalHymnDesc
+    print("BoonStacker: Applied HelpText SJSON modifications")
+    return data
 end)
 
