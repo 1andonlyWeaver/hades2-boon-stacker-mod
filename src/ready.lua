@@ -11,29 +11,24 @@ import 'BoonStacker.lua'
 import 'incantation.lua'
 
 -- Supplemental Hymn text modifications using SJSON hooks
--- The text might be in different files, so we hook multiple
+-- The TraitText.en.sjson uses an array of objects with Id, DisplayName, Description
 local supplementalHymnName = "Supplemental Hymn"
-local supplementalHymnDesc = "Stackable Boons will be offered as soon as possible, and your next gains +2 Lv."
+local supplementalHymnDesc = "Stackable Boons will be offered as soon as possible, and your next gains {#AltUpgradeFormat}+{$TraitData.LimitedSwapBonusTrait.ExchangeLevelBonus}{#Prev} {$Keywords.PomLevel}"
 
 -- Hook into TraitText.en.sjson (where trait/item names are stored)
 sjson.hook("Game/Text/en/TraitText.en.sjson", function(data)
-    -- Try various possible key formats
-    data.LimitedSwapTraitDrop = supplementalHymnName
-    data.LimitedSwapBonusTrait = supplementalHymnName
-    -- Also try with _Short suffix for descriptions
-    data.LimitedSwapTraitDrop_Short = supplementalHymnDesc
-    data.LimitedSwapBonusTrait_Short = supplementalHymnDesc
-    print("BoonStacker: Applied TraitText SJSON modifications")
-    return data
-end)
-
--- Hook into HelpText.en.sjson as backup
-sjson.hook("Game/Text/en/HelpText.en.sjson", function(data)
-    data.LimitedSwapTraitDrop = supplementalHymnName
-    data.LimitedSwapBonusTrait = supplementalHymnName
-    data.LimitedSwapTraitDrop_Short = supplementalHymnDesc
-    data.LimitedSwapBonusTrait_Short = supplementalHymnDesc
-    print("BoonStacker: Applied HelpText SJSON modifications")
+    -- Iterate through all entries to find our target IDs
+    for _, entry in ipairs(data) do
+        if entry.Id == "LimitedSwapTraitDrop" then
+            entry.DisplayName = supplementalHymnName
+            entry.Description = supplementalHymnDesc
+            print("BoonStacker: Modified LimitedSwapTraitDrop text")
+        elseif entry.Id == "LimitedSwapBonusTrait" then
+            -- This one inherits from LimitedSwapTraitDrop, but set explicitly to be safe
+            entry.DisplayName = supplementalHymnName
+            print("BoonStacker: Modified LimitedSwapBonusTrait text")
+        end
+    end
     return data
 end)
 
