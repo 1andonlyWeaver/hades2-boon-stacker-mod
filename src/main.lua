@@ -28,6 +28,36 @@ sjson = mods['SGG_Modding-SJSON']
 ---@module 'SGG_Modding-ModUtil'
 modutil = mods['SGG_Modding-ModUtil']
 
+-- Register SJSON hooks early, before game data is loaded
+-- Supplemental Hymn text modifications (repurposing Sacrificial Hymn)
+local supplementalHymnName = "Supplemental Hymn"
+local supplementalHymnDesc = "Stackable Boons will be offered as soon as possible, and your next gains {#AltUpgradeFormat}+{$TraitData.LimitedSwapBonusTrait.ExchangeLevelBonus}{#Prev} {$Keywords.PomLevel}"
+
+sjson.hook("Game/Text/en/TraitText.en.sjson", function(data)
+    -- The SJSON structure is: data.Texts = array of text entries
+    local texts = data.Texts
+    if not texts then
+        print("BoonStacker: Warning - data.Texts not found in TraitText.en.sjson")
+        return data
+    end
+    
+    -- Iterate through all text entries to find our targets
+    for _, entry in pairs(texts) do
+        if type(entry) == "table" then
+            if entry.Id == "LimitedSwapTraitDrop" then
+                entry.DisplayName = supplementalHymnName
+                entry.Description = supplementalHymnDesc
+                print("BoonStacker: Modified LimitedSwapTraitDrop -> Supplemental Hymn")
+            elseif entry.Id == "LimitedSwapBonusTrait" then
+                entry.DisplayName = supplementalHymnName
+                print("BoonStacker: Modified LimitedSwapBonusTrait -> Supplemental Hymn")
+            end
+        end
+    end
+    
+    return data
+end)
+
 ---@module 'SGG_Modding-Chalk'
 chalk = mods["SGG_Modding-Chalk"]
 ---@module 'SGG_Modding-ReLoad'
