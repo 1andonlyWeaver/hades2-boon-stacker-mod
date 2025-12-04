@@ -111,26 +111,8 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 	end
 	args = args or {}
 
-	-- Reset any stale Supplemental Hymn state from previous uncompleted selections
-	BoonStacker.SupplementalHymnActive = false
-	BoonStacker.SupplementalHymnLevelBonus = 0
-
-	-- Check for Supplemental Hymn (ForceSwaps trait) - repurposed for stacking
-	local forceSwapTrait = game.HasHeroTraitValue("ForceSwaps")
-	local supplementalHymnActive = forceSwapTrait and forceSwapTrait.Uses and forceSwapTrait.Uses > 0
-	
-	if supplementalHymnActive then
-		-- Store state for level bonus application
-		BoonStacker.SupplementalHymnActive = true
-		BoonStacker.SupplementalHymnLevelBonus = game.GetTotalHeroTraitValue("ExchangeLevelBonus") or 2
-		-- Mark loot data so the trait gets consumed after selection
-		lootData.UseSwapTrait = true
-		-- print("BoonStacker: Supplemental Hymn active, will prioritize stackable boons with +" .. tostring(BoonStacker.SupplementalHymnLevelBonus) .. " levels")
-	end
-
 	local priorityOptions = {}
 	local traitsWithGuaranteedSlot = {}
-	local traitsInOccupiedSlots = {} -- For Supplemental Hymn: traits that would stack
 	local occupiedSlots = {}
 
     -- Robustly check for occupied slots
@@ -178,34 +160,7 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 						table.insert(traitsWithGuaranteedSlot, traitName)
 					end
 				end
-				
-				-- For Supplemental Hymn: also track traits that WOULD stack (in occupied slots)
-				if supplementalHymnActive and isGuaranteedSlot and occupiedSlots[slot] then
-					table.insert(traitsInOccupiedSlots, traitName)
-				end
 			end
-		end
-	end
-
-	-- Supplemental Hymn: Prioritize stackable boons (traits in already-filled slots)
-	if supplementalHymnActive and not game.IsEmpty(traitsInOccupiedSlots) then
-		-- print("BoonStacker: Supplemental Hymn - Found " .. tostring(#traitsInOccupiedSlots) .. " stackable trait options")
-		
-		-- Replace priority options with stackable traits, ensuring at least one is included
-		local stackableOptions = {}
-		for _, traitName in ipairs(traitsInOccupiedSlots) do
-			table.insert(stackableOptions, { ItemName = traitName, Type = "Trait" })
-		end
-		
-		-- Trim to max loot choices
-		while game.TableLength(stackableOptions) > game.GetTotalLootChoices() do
-			game.RemoveRandomValue(stackableOptions)
-			stackableOptions = game.CollapseTable(stackableOptions)
-		end
-		
-		-- If we have stackable options, use them; otherwise fall back to normal priority
-		if not game.IsEmpty(stackableOptions) then
-			return stackableOptions
 		end
 	end
 
@@ -250,12 +205,92 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 end
 
 -- Override GetReplacementTraits
-function game.GetReplacementTraits( ... )
+-- This is where Supplemental Hymn logic must live, because the game calls this
+-- when ForceSwaps trait is active BEFORE calling GetPriorityTraits
+function game.GetReplacementTraits( priorityUpgrades, ... )
     if not public.BoonStacker.IsUnlocked() then
-        return originals.GetReplacementTraits(...)
+        return originals.GetReplacementTraits(priorityUpgrades, ...)
     end
-	-- print("BoonStacker: GetReplacementTraits blocking replacement")
-	return {}
+    
+    -- Check for Supplemental Hymn (ForceSwaps trait) - repurposed for stacking
+    local forceSwapTrait = game.HasHeroTraitValue("ForceSwaps")
+    local supplementalHymnActive = forceSwapTrait and forceSwapTrait.Uses and forceSwapTrait.Uses > 0
+    
+    if supplementalHymnActive and priorityUpgrades then
+        -- Reset any stale state
+        BoonStacker.SupplementalHymnActive = false
+        BoonStacker.SupplementalHymnLevelBonus = 0
+        
+        -- Find occupied slots
+        local occupiedSlots = {}
+        local hero = game.CurrentRun and game.CurrentRun.Hero
+        if hero and hero.Traits then
+            for _, trait in pairs(hero.Traits) do
+                if trait.Name then
+                    local tData = game.TraitData[trait.Name]
+                    if tData then
+                        local slot = tData.Slot or tData.OriginalSlot
+                        if slot then
+                            for _, gSlot in ipairs(guaranteedSlots) do
+                                if gSlot == slot then
+                                    occupiedSlots[slot] = true
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        
+        -- Find traits that would stack (in already-occupied slots)
+        local stackableOptions = {}
+        for _, traitName in ipairs(priorityUpgrades) do
+            local traitData = game.TraitData[traitName]
+            if traitData and game.IsTraitEligible(traitData) then
+                if not game.HeroHasTrait(traitName) then
+                    local slot = traitData.Slot or traitData.OriginalSlot
+                    local isGuaranteedSlot = false
+                    if slot then
+                        for _, gSlot in ipairs(guaranteedSlots) do
+                            if gSlot == slot then 
+                                isGuaranteedSlot = true 
+                                break 
+                            end
+                        end
+                    end
+                    
+                    -- Only include traits in OCCUPIED guaranteed slots (stackable)
+                    if isGuaranteedSlot and occupiedSlots[slot] then
+                        table.insert(stackableOptions, { ItemName = traitName, Type = "Trait" })
+                    end
+                end
+            end
+        end
+        
+        -- If we found stackable options, return them
+        if not game.IsEmpty(stackableOptions) then
+            -- Store state for level bonus application
+            BoonStacker.SupplementalHymnActive = true
+            BoonStacker.SupplementalHymnLevelBonus = game.GetTotalHeroTraitValue("ExchangeLevelBonus") or 2
+            
+            print("BoonStacker: Supplemental Hymn active - found " .. tostring(#stackableOptions) .. " stackable options")
+            
+            -- Trim to max loot choices
+            while game.TableLength(stackableOptions) > game.GetTotalLootChoices() do
+                game.RemoveRandomValue(stackableOptions)
+                stackableOptions = game.CollapseTable(stackableOptions)
+            end
+            
+            return stackableOptions
+        else
+            print("BoonStacker: Supplemental Hymn active but no stackable options found - no slots filled yet?")
+        end
+    end
+    
+    -- Default: block all replacements when BoonStacker is active
+    -- print("BoonStacker: GetReplacementTraits blocking replacement")
+    return {}
 end
 
 -- Override GetEligibleUpgrades to reduce probability of stacked boons

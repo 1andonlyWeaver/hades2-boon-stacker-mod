@@ -1,7 +1,5 @@
 {
   "LimitedSwapTraitDrop": "Supplemental Hymn",
-  "LimitedSwapTraitDrop_Short": "Stackable Boons will be offered as soon as possible, and your next gains {#BoldFormat}+{$TooltipData.Levels} Lv{#Prev}.",
-  "LimitedSwapBonusTrait": "Supplemental Hymn",
-  "LimitedSwapBonusTrait_Short": "Stackable Boons will be offered as soon as possible, and your next gains {#BoldFormat}+{$TooltipData.Levels} Lv{#Prev}."
+  "LimitedSwapBonusTrait": "Supplemental Hymn"
 }
 
