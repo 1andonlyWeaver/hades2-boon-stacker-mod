@@ -37,12 +37,6 @@ target = "./LICENSE"
 source = "./src"
 target = "./"
 
-# Uncomment (remove the #) the three lines below if you have any files to copy to the plugins_data folder (like custom .pkg files)
-# [[build.copy]]
-# source = "./data"
-# target = "./plugins_data"
-
-
 [publish]
 repository = "https://thunderstore.io"
 communities = [ "hades-ii", ]
