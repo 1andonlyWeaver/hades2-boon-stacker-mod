@@ -340,6 +340,12 @@ function game.AddTraitToHero( args )
     
     -- Check if Supplemental Hymn is active and should apply level bonus
     if BoonStacker.SupplementalHymnActive and BoonStacker.SupplementalHymnLevelBonus > 0 then
+        -- Always reset the state when AddTraitToHero is called while active
+        -- This prevents incorrect bonus application to subsequent traits
+        local levelBonus = BoonStacker.SupplementalHymnLevelBonus
+        BoonStacker.SupplementalHymnActive = false
+        BoonStacker.SupplementalHymnLevelBonus = 0
+        
         local traitData = args.TraitData
         if traitData then
             local slot = traitData.Slot or traitData.OriginalSlot
@@ -356,13 +362,9 @@ function game.AddTraitToHero( args )
             -- Only apply bonus to boons in guaranteed slots (the stackable ones)
             if isGuaranteedSlot then
                 local currentStackNum = traitData.StackNum or 1
-                local newStackNum = currentStackNum + BoonStacker.SupplementalHymnLevelBonus
+                local newStackNum = currentStackNum + levelBonus
                 traitData.StackNum = newStackNum
-                print("BoonStacker: Supplemental Hymn applied +" .. tostring(BoonStacker.SupplementalHymnLevelBonus) .. " levels to " .. tostring(traitData.Name) .. " (now level " .. tostring(newStackNum) .. ")")
-                
-                -- Reset the Supplemental Hymn state after applying bonus
-                BoonStacker.SupplementalHymnActive = false
-                BoonStacker.SupplementalHymnLevelBonus = 0
+                print("BoonStacker: Supplemental Hymn applied +" .. tostring(levelBonus) .. " levels to " .. tostring(traitData.Name) .. " (now level " .. tostring(newStackNum) .. ")")
             end
         end
     end
