@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2025-12-05
+
 - **Configuration**:
   - Added option to turn on/off prioritization for certain boon types.
 - **Fixes & Improvements**:
@@ -65,7 +67,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Configuration**:
   - Added `config.lua` with options for `EasyUnlock` (recipe cost) and `StackPenaltyScalar` (probability balancing).
 
-[unreleased]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.4.0...HEAD
+[unreleased]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.4.1...HEAD
+[0.4.1]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.3.0...0.4.0
 [0.3.0]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.2.2...0.3.0
 [0.2.2]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.2.1...0.2.2
