@@ -293,6 +293,42 @@ function game.GetReplacementTraits( priorityUpgrades, ... )
     return {}
 end
 
+-- Weighted random selection without replacement
+-- Selects 'count' items from 'options' based on their weights
+local function WeightedSelectWithoutReplacement(options, weights, count)
+    local selected = {}
+    local remainingWeights = {}
+    local totalWeight = 0
+    
+    -- Copy weights
+    for i, w in ipairs(weights) do
+        remainingWeights[i] = w
+        totalWeight = totalWeight + w
+    end
+    
+    -- Select 'count' items
+    for j = 1, count do
+        if totalWeight <= 0 then break end
+        
+        local roll = game.RandomNumber() * totalWeight
+        local cumulative = 0
+        
+        for i, option in ipairs(options) do
+            if remainingWeights[i] and remainingWeights[i] > 0 then
+                cumulative = cumulative + remainingWeights[i]
+                if roll <= cumulative then
+                    table.insert(selected, option)
+                    totalWeight = totalWeight - remainingWeights[i]
+                    remainingWeights[i] = 0
+                    break
+                end
+            end
+        end
+    end
+    
+    return selected
+end
+
 -- Override GetEligibleUpgrades to reduce probability of stacked boons
 function game.GetEligibleUpgrades( upgradeOptions, lootData, upgradeChoiceData )
     if not public.BoonStacker.IsUnlocked() then
@@ -331,38 +367,38 @@ function game.GetEligibleUpgrades( upgradeOptions, lootData, upgradeChoiceData )
         end
     end
 
-    -- Filter based on probability
-    local filteredOptions = {}
+    -- Calculate weights for all options
+    -- Weight formula: 1 / (1 + (count * scalar))
+    -- Unpenalized boons have weight 1.0, penalized boons have weight < 1.0
+    local weights = {}
+    local hasAnyPenalty = false
+
     for i, option in ipairs(eligibleOptions) do
-        local keep = true
+        local weight = 1.0  -- default weight (no penalty)
         local traitData = game.TraitData[option.ItemName]
         if traitData then
             local slot = traitData.Slot or traitData.OriginalSlot
             if slot and slotCounts[slot] and slotCounts[slot] > 0 then
-                -- Calculate probability: 1 / (1 + (count * scalar))
-                -- Default Scalar 1.0:
-                -- Count = 1 -> 50% chance
-                -- Count = 2 -> 33% chance
-                local scalar = 1.0
-                if config and config.StackPenaltyScalar then
-                    scalar = config.StackPenaltyScalar
-                end
-                
-                local probability = 1.0 / (1 + (slotCounts[slot] * scalar))
-                
-                if not game.RandomChance(probability) then
-                    keep = false
-                    -- print("BoonStacker: Reducing probability for " .. tostring(option.ItemName) .. " in slot " .. tostring(slot) .. " (Count: " .. tostring(slotCounts[slot]) .. ") - REMOVED")
-                else
-                    -- print("BoonStacker: Reducing probability for " .. tostring(option.ItemName) .. " in slot " .. tostring(slot) .. " (Count: " .. tostring(slotCounts[slot]) .. ") - KEPT")
-                end
+                local scalar = (config and config.StackPenaltyScalar) or 1.0
+                -- Calculate weight: 1 / (1 + (count * scalar))
+                -- Count = 1, Scalar = 1.0 -> weight = 0.5
+                -- Count = 2, Scalar = 1.0 -> weight = 0.33
+                weight = 1.0 / (1 + (slotCounts[slot] * scalar))
+                hasAnyPenalty = true
             end
         end
-        
-        if keep then
-            table.insert(filteredOptions, option)
-        end
+        weights[i] = weight
     end
+
+    -- If no penalties apply, return original list unchanged
+    if not hasAnyPenalty then
+        return eligibleOptions
+    end
+
+    -- Use weighted selection to pick boons for the pool
+    -- Select all boons but with weighted probability (weighted sampling without replacement)
+    local numToSelect = #eligibleOptions
+    local filteredOptions = WeightedSelectWithoutReplacement(eligibleOptions, weights, numToSelect)
 
     return filteredOptions
 end
