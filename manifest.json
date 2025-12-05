@@ -1,6 +1,6 @@
 {
     "name": "BoonStacker",
-    "version_number": "0.2.0",
+    "version_number": "0.4.0",
     "website_url": "",
     "description": "Allows players to stack boons in core slots (Attack, Special, Cast, Sprint, Magick) without replacing existing ones.",
     "dependencies": [
