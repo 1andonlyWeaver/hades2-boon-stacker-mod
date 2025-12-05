@@ -4,7 +4,10 @@
 BoonStacker = public.BoonStacker or {}
 public.BoonStacker = BoonStacker
 
-local guaranteedSlots = {"Melee", "Secondary", "Ranged", "Rush", "Mana"}
+-- Slots where stacking is allowed (all 5 core slots)
+local stackableSlots = {"Melee", "Secondary", "Ranged", "Rush", "Mana"}
+-- Slots that get guaranteed priority offers when empty (vanilla-like behavior)
+local prioritySlots = {"Melee", "Secondary"}
 
 -- Supplemental Hymn state tracking
 -- When ForceSwaps trait is active and BoonStacker is unlocked, we repurpose it
@@ -47,7 +50,7 @@ function public.BoonStacker.EnableLogic()
     if not game.TraitData then return end
     print("BoonStacker: Enabling Logic (modifying TraitData)")
     for name, trait in pairs(game.TraitData) do
-        if trait.Slot and game.Contains(guaranteedSlots, trait.Slot) then
+        if trait.Slot and game.Contains(stackableSlots, trait.Slot) then
             trait.OriginalSlot = trait.Slot
             trait.Slot = nil
         end
@@ -58,7 +61,7 @@ function public.BoonStacker.DisableLogic()
     if not game.TraitData then return end
     print("BoonStacker: Disabling Logic (restoring TraitData)")
     for name, trait in pairs(game.TraitData) do
-        if trait.OriginalSlot and game.Contains(guaranteedSlots, trait.OriginalSlot) then
+        if trait.OriginalSlot and game.Contains(stackableSlots, trait.OriginalSlot) then
             trait.Slot = trait.OriginalSlot
         end
     end
@@ -110,7 +113,7 @@ local function CalculateSlotCounts()
                 if tData then
                     local slot = tData.Slot or tData.OriginalSlot
                     if slot then
-                        for _, gSlot in ipairs(guaranteedSlots) do
+                        for _, gSlot in ipairs(stackableSlots) do
                             if gSlot == slot then
                                 slotCounts[slot] = (slotCounts[slot] or 0) + 1
                                 break
@@ -227,7 +230,7 @@ function game.GetPriorityTraits( traitNames, lootData, args )
                     local slot = tData.Slot or tData.OriginalSlot
                     if slot then
                         -- Manual check for guaranteed slots to avoid dependency issues
-                        for _, gSlot in ipairs(guaranteedSlots) do
+                        for _, gSlot in ipairs(stackableSlots) do
                             if gSlot == slot then
                                 occupiedSlots[slot] = true
                                 -- print("BS_DEBUG: Slot " .. tostring(slot) .. " occupied by " .. tostring(trait.Name))
@@ -245,26 +248,26 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 		if traitData and (lootData.StripRequirements or game.IsTraitEligible( traitData )) then
 			if not game.HeroHasTrait(traitName) then
 				local slot = traitData.Slot or traitData.OriginalSlot
-                local isGuaranteedSlot = false
+                local isPrioritySlot = false
                 if slot then
-                    for _, gSlot in ipairs(guaranteedSlots) do
-                        if gSlot == slot then isGuaranteedSlot = true break end
+                    for _, pSlot in ipairs(prioritySlots) do
+                        if pSlot == slot then isPrioritySlot = true break end
                     end
                 end
 
-                -- Only add to priority options if the slot is NOT occupied (or it's not a guaranteed slot type)
-                -- This ensures filled slots are not forced, but can still appear via general loot logic
-				if not isGuaranteedSlot or not occupiedSlots[slot] then
-					local data = { ItemName = traitName, Type = "Trait"}
-					table.insert(priorityOptions, data)
-					
-					if isGuaranteedSlot then
-						table.insert(traitsWithGuaranteedSlot, traitName)
-					end
-				end
+                -- BoonStacker: Only include PRIORITY SLOT boons (Attack/Special) in priority pool
+                -- AND only if their slot is still EMPTY (not yet filled)
+                -- Once a slot is filled, that boon type goes through GetEligibleUpgrades with penalty
+                if isPrioritySlot and not occupiedSlots[slot] then
+                    local data = { ItemName = traitName, Type = "Trait"}
+                    table.insert(priorityOptions, data)
+                    table.insert(traitsWithGuaranteedSlot, traitName)
+                end
 			end
 		end
 	end
+	
+	print("BoonStacker:GetPriorityTraits - Priority pool size: " .. #priorityOptions .. " (only Attack/Special boons)")
 
 	-- Use weighted selection instead of uniform random removal
 	local numToSelect = game.GetTotalLootChoices()
@@ -286,22 +289,30 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 	end
 	local hasGuarantee = false
 
+	-- Log the final selected options
+	print("BoonStacker:GetPriorityTraits - Final options after selection:")
 	for i, option in ipairs(priorityOptions) do
 		local traitData = game.TraitData[option.ItemName]
 		if traitData then
 			local slot = traitData.Slot or traitData.OriginalSlot
-            local isGuaranteedSlot = false
+            local isPrioritySlot = false
             if slot then
-                for _, gSlot in ipairs(guaranteedSlots) do
-                    if gSlot == slot then isGuaranteedSlot = true break end
+                for _, pSlot in ipairs(prioritySlots) do
+                    if pSlot == slot then isPrioritySlot = true break end
                 end
             end
+			local slotStatus = occupiedSlots[slot] and "OCCUPIED" or "empty"
+			local priorityStr = isPrioritySlot and " [PRIORITY]" or ""
+			print("  " .. i .. ". " .. option.ItemName .. " (slot: " .. tostring(slot) .. " " .. slotStatus .. ")" .. priorityStr)
 
-			if isGuaranteedSlot and not occupiedSlots[slot] then
+			if isPrioritySlot and not occupiedSlots[slot] then
 				hasGuarantee = true
 			end
 		end
 	end
+	
+	print("BoonStacker:GetPriorityTraits - hasGuarantee: " .. tostring(hasGuarantee))
+	print("BoonStacker:GetPriorityTraits - traitsWithGuaranteedSlot count: " .. #traitsWithGuaranteedSlot)
 
 	if not hasGuarantee and not game.IsEmpty(traitsWithGuaranteedSlot) and not game.IsEmpty(priorityOptions) then
 		local firstOption = priorityOptions[1]
@@ -309,11 +320,21 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 			local validGuaranteedTraits = {}
 			for _, traitName in ipairs(traitsWithGuaranteedSlot) do
 				if not game.HeroHasTrait(traitName) then
-					table.insert(validGuaranteedTraits, traitName)
+					-- BoonStacker: Only force traits for UNOCCUPIED slots
+					-- Stacking should happen through weighted selection, not forced guarantee
+					local traitData = game.TraitData[traitName]
+					local slot = traitData and (traitData.Slot or traitData.OriginalSlot)
+					if slot and not occupiedSlots[slot] then
+						table.insert(validGuaranteedTraits, traitName)
+					end
 				end
 			end
 			if not game.IsEmpty(validGuaranteedTraits) then
+				local originalName = firstOption.ItemName
 				firstOption.ItemName = game.GetRandomValue( validGuaranteedTraits )
+				print("BoonStacker:GetPriorityTraits - GUARANTEE SWAP: " .. originalName .. " -> " .. firstOption.ItemName)
+			else
+				print("BoonStacker:GetPriorityTraits - No valid guaranteed traits to swap (all priority slots occupied)")
 			end
 		end
 	end
@@ -347,7 +368,7 @@ function game.GetReplacementTraits( priorityUpgrades, ... )
                     if tData then
                         local slot = tData.Slot or tData.OriginalSlot
                         if slot then
-                            for _, gSlot in ipairs(guaranteedSlots) do
+                            for _, gSlot in ipairs(stackableSlots) do
                                 if gSlot == slot then
                                     occupiedSlots[slot] = true
                                     break
@@ -368,7 +389,7 @@ function game.GetReplacementTraits( priorityUpgrades, ... )
                     local slot = traitData.Slot or traitData.OriginalSlot
                     local isGuaranteedSlot = false
                     if slot then
-                        for _, gSlot in ipairs(guaranteedSlots) do
+                        for _, gSlot in ipairs(stackableSlots) do
                             if gSlot == slot then 
                                 isGuaranteedSlot = true 
                                 break 
@@ -486,7 +507,7 @@ function game.AddTraitToHero( args )
             local slot = traitData.Slot or traitData.OriginalSlot
             local isGuaranteedSlot = false
             if slot then
-                for _, gSlot in ipairs(guaranteedSlots) do
+                for _, gSlot in ipairs(stackableSlots) do
                     if gSlot == slot then 
                         isGuaranteedSlot = true 
                         break 
@@ -513,7 +534,7 @@ function game.HeroSlotFilled( slotName, ... )
         return originals.HeroSlotFilled(slotName, ...)
     end
 
-	if game.Contains(guaranteedSlots, slotName) then
+	if game.Contains(stackableSlots, slotName) then
 		-- print("BoonStacker: HeroSlotFilled forcing false for " .. tostring(slotName))
 		return false
 	end
