@@ -272,7 +272,7 @@ function game.GetReplacementTraits( priorityUpgrades, ... )
         if not game.IsEmpty(stackableOptions) then
             -- Store state for level bonus application
             BoonStacker.SupplementalHymnActive = true
-            BoonStacker.SupplementalHymnLevelBonus = game.GetTotalHeroTraitValue("ExchangeLevelBonus") or 2
+            BoonStacker.SupplementalHymnLevelBonus = (game.TraitData.LimitedSwapBonusTrait and game.TraitData.LimitedSwapBonusTrait.ExchangeLevelBonus) or 2
             
             print("BoonStacker: Supplemental Hymn active - found " .. tostring(#stackableOptions) .. " stackable options")
             
