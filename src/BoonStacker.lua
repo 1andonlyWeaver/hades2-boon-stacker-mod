@@ -216,11 +216,11 @@ function game.GetReplacementTraits( priorityUpgrades, ... )
     local forceSwapTrait = game.HasHeroTraitValue("ForceSwaps")
     local supplementalHymnActive = forceSwapTrait and forceSwapTrait.Uses and forceSwapTrait.Uses > 0
     
+    -- Reset any stale state unconditionally
+    BoonStacker.SupplementalHymnActive = false
+    BoonStacker.SupplementalHymnLevelBonus = 0
+
     if supplementalHymnActive and priorityUpgrades then
-        -- Reset any stale state
-        BoonStacker.SupplementalHymnActive = false
-        BoonStacker.SupplementalHymnLevelBonus = 0
-        
         -- Find occupied slots
         local occupiedSlots = {}
         local hero = game.CurrentRun and game.CurrentRun.Hero
@@ -272,7 +272,7 @@ function game.GetReplacementTraits( priorityUpgrades, ... )
         if not game.IsEmpty(stackableOptions) then
             -- Store state for level bonus application
             BoonStacker.SupplementalHymnActive = true
-            BoonStacker.SupplementalHymnLevelBonus = game.GetTotalHeroTraitValue("ExchangeLevelBonus") or 2
+            BoonStacker.SupplementalHymnLevelBonus = (game.TraitData.LimitedSwapBonusTrait and game.TraitData.LimitedSwapBonusTrait.ExchangeLevelBonus) or 2
             
             print("BoonStacker: Supplemental Hymn active - found " .. tostring(#stackableOptions) .. " stackable options")
             
@@ -375,9 +375,10 @@ function game.AddTraitToHero( args )
     
     -- Check if Supplemental Hymn is active and should apply level bonus
     if BoonStacker.SupplementalHymnActive and BoonStacker.SupplementalHymnLevelBonus > 0 then
-        -- Always reset the state when AddTraitToHero is called while active
-        -- This prevents incorrect bonus application to subsequent traits
+        -- Capture bonus before reset
         local levelBonus = BoonStacker.SupplementalHymnLevelBonus
+        
+        -- Reset state unconditionally to ensure it's consumed by this call
         BoonStacker.SupplementalHymnActive = false
         BoonStacker.SupplementalHymnLevelBonus = 0
         
