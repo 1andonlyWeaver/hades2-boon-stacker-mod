@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- **New Feature**: Supplemental Hymn
+  - Repurposed "Sacrificial Hymn" (LimitedSwapTraitDrop) to "Supplemental Hymn".
+  - Prioritizes offering boons for slots that are already occupied (stacking).
+  - Grants a level bonus (default +2) to stacked boons acquired this way.
+  - Updated in-game text and descriptions via SJSON hooks.
+- **Fixes & Improvements**:
+  - Refactored `GetReplacementTraits` to support stacking logic.
+  - Improved trait selection and bonus application stability.
+
 ## [0.3.0] - 2025-12-03
 
 - **Configuration**:

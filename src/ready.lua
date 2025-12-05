@@ -10,3 +10,5 @@
 import 'BoonStacker.lua'
 import 'incantation.lua'
 
+-- SJSON hooks for text modifications are registered in main.lua (before game data loads)
+
