@@ -6,8 +6,27 @@ public.BoonStacker = BoonStacker
 
 -- Slots where stacking is allowed (all 5 core slots)
 local stackableSlots = {"Melee", "Secondary", "Ranged", "Rush", "Mana"}
--- Slots that get guaranteed priority offers when empty (vanilla-like behavior)
-local prioritySlots = {"Melee", "Secondary"}
+
+-- Build priority slots based on config (which slots get guaranteed offers when empty)
+local function GetPrioritySlots()
+    local slots = {}
+    if config and config.PrioritizeAttack then
+        table.insert(slots, "Melee")
+    end
+    if config and config.PrioritizeSpecial then
+        table.insert(slots, "Secondary")
+    end
+    if config and config.PrioritizeCast then
+        table.insert(slots, "Ranged")
+    end
+    if config and config.PrioritizeSprint then
+        table.insert(slots, "Rush")
+    end
+    if config and config.PrioritizeMagick then
+        table.insert(slots, "Mana")
+    end
+    return slots
+end
 
 -- Supplemental Hymn state tracking
 -- When ForceSwaps trait is active and BoonStacker is unlocked, we repurpose it
@@ -250,7 +269,7 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 				local slot = traitData.Slot or traitData.OriginalSlot
                 local isPrioritySlot = false
                 if slot then
-                    for _, pSlot in ipairs(prioritySlots) do
+                    for _, pSlot in ipairs(GetPrioritySlots()) do
                         if pSlot == slot then isPrioritySlot = true break end
                     end
                 end
@@ -297,7 +316,7 @@ function game.GetPriorityTraits( traitNames, lootData, args )
 			local slot = traitData.Slot or traitData.OriginalSlot
             local isPrioritySlot = false
             if slot then
-                for _, pSlot in ipairs(prioritySlots) do
+                for _, pSlot in ipairs(GetPrioritySlots()) do
                     if pSlot == slot then isPrioritySlot = true break end
                 end
             end
