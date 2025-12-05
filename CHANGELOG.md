@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- **Configuration**:
+  - Added option to turn on/off prioritization for certain boon types.
+- **Fixes & Improvements**:
+  - Corrected system for calculating "stacked" boon probabilities.
+  - Corrected issue where all boons were being prioritized on run start.
+
 ## [0.4.0] - 2025-12-05
 
 - **New Feature**: Supplemental Hymn
