@@ -111,6 +111,15 @@ local stackLimitProgression = {
 local function BuildSlotRequirements(slotData)
     local requirements = {}
     
+    -- Require that the player has discovered the material used for this incantation
+    for resourceId, _ in pairs(slotData.cost) do
+        table.insert(requirements, {
+            Path = { "GameState", "LifetimeResourcesGained", resourceId },
+            Comparison = ">=",
+            Value = 1,
+        })
+    end
+    
     if slotData.requires then
         table.insert(requirements, {
             PathTrue = { "GameState", "WorldUpgrades", slotData.requires },
@@ -123,6 +132,15 @@ end
 -- Build GameStateRequirements for a stack limit upgrade
 local function BuildStackLimitRequirements(limitData)
     local requirements = {}
+    
+    -- Require that the player has discovered the material used for this incantation
+    for resourceId, _ in pairs(limitData.cost) do
+        table.insert(requirements, {
+            Path = { "GameState", "LifetimeResourcesGained", resourceId },
+            Comparison = ">=",
+            Value = 1,
+        })
+    end
     
     if limitData.requires then
         table.insert(requirements, {
