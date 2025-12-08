@@ -32,7 +32,7 @@ local slotProgression = {
         description = "Permits multiple {#Emph}Sprint Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
         flavorText = "Run with the speed of many gods.",
         cost = { MixerGBoss = 1 }, -- Pearl (Scylla/Oceanus Guardian)
-        requires = "BoonStacker_Slot_Mana",
+        requires = nil,
         icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
     },
     { 
@@ -43,7 +43,7 @@ local slotProgression = {
         description = "Permits multiple {#Emph}Cast Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
         flavorText = "Cast forth the light of many heavens.",
         cost = { MixerNBoss = 1 }, -- Wool (City of Ephyra Guardian)
-        requires = "BoonStacker_Slot_Rush",
+        requires = nil,
         icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
     },
     { 
@@ -54,7 +54,7 @@ local slotProgression = {
         description = "Permits multiple {#Emph}Special Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
         flavorText = "Master the secret techniques of the divine.",
         cost = { MixerHBoss = 1 }, -- Tears (Mourning Fields Guardian)
-        requires = "BoonStacker_Slot_Ranged",
+        requires = nil,
         icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
     },
     { 
@@ -65,7 +65,7 @@ local slotProgression = {
         description = "Permits multiple {#Emph}Attack Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
         flavorText = "Strike with the fury of all Olympus combined.",
         cost = { MixerOBoss = 1 }, -- Golden Apple (Rift of Thessaly Guardian)
-        requires = "BoonStacker_Slot_Secondary",
+        requires = nil,
         icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
     },
 }
@@ -79,7 +79,8 @@ local stackLimitProgression = {
         description = "Increases the maximum number of Blessings that can occupy each ability slot from {#Emph}2{#Prev} to {#Emph}3{#Prev}.",
         flavorText = "The cauldron grows to hold more blessings.",
         cost = { MixerPBoss = 1 }, -- Eagle's Feather
-        requires = "BoonStacker_Slot_Melee", -- Requires all slots unlocked
+        requires = nil, -- No prerequisite
+
         icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_blessing",
     },
     {
