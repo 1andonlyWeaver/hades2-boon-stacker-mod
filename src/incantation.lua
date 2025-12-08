@@ -6,136 +6,214 @@
 local mods = rom.mods
 Incantations = mods['BlueRaja-IncantationsAPI']
 
-local unlockCost = { 
-    MixerIBoss = 1, -- Zodiac Sand
-    MixerQBoss = 1, -- Void Lens
+-- ============================================================================
+-- PROGRESSION CONFIGURATION
+-- ============================================================================
+
+-- Slot unlock order (Magick first, Attack last)
+local slotProgression = {
+    { 
+        id = "BoonStacker_Slot_Mana", 
+        slot = "Mana", 
+        displayName = "Magick",
+        name = "Layering of Mana Flows",
+        description = "Permits multiple {#Emph}Magick Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
+        flavorText = "Let the power flow through many channels at once.",
+        cost = { PlantFMoly = 1 }, -- Moly (Erebus hand pick)
+        requires = nil,
+        icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
+    },
+    { 
+        id = "BoonStacker_Slot_Rush", 
+        slot = "Rush", 
+        displayName = "Sprint",
+        name = "Layering of Swift Strides",
+        description = "Permits multiple {#Emph}Sprint Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
+        flavorText = "Run with the speed of many gods.",
+        cost = { OreFSilver = 1 }, -- Silver (Erebus mining)
+        requires = "BoonStacker_Slot_Mana",
+        icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
+    },
+    { 
+        id = "BoonStacker_Slot_Ranged", 
+        slot = "Ranged", 
+        displayName = "Cast",
+        name = "Layering of Distant Stars",
+        description = "Permits multiple {#Emph}Cast Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
+        flavorText = "Cast forth the light of many heavens.",
+        cost = { PlantGLotus = 1 }, -- Lotus (Oceanus hand pick)
+        requires = "BoonStacker_Slot_Rush",
+        icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
+    },
+    { 
+        id = "BoonStacker_Slot_Secondary", 
+        slot = "Secondary", 
+        displayName = "Special",
+        name = "Layering of Hidden Arts",
+        description = "Permits multiple {#Emph}Special Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
+        flavorText = "Master the secret techniques of the divine.",
+        cost = { OreGLime = 1 }, -- Limestone (Oceanus mining)
+        requires = "BoonStacker_Slot_Ranged",
+        icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
+    },
+    { 
+        id = "BoonStacker_Slot_Melee", 
+        slot = "Melee", 
+        displayName = "Attack",
+        name = "Layering of Raw Force",
+        description = "Permits multiple {#Emph}Attack Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
+        flavorText = "Strike with the fury of all Olympus combined.",
+        cost = { PlantHMyrtle = 1 }, -- Myrtle (Mourning Fields hand pick)
+        requires = "BoonStacker_Slot_Secondary",
+        icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
+    },
 }
 
--- Check config, defaulting to true if missing
-local useEasy = true
-if config then
-    if config.EasyUnlock ~= nil then
-        useEasy = config.EasyUnlock
+-- Stack limit upgrades (2 -> 3 -> 4 -> unlimited)
+local stackLimitProgression = {
+    {
+        id = "BoonStacker_Stack_Limit_3",
+        name = "Expansion of Divine Capacity I",
+        description = "Increases the maximum number of Blessings that can occupy each ability slot from {#Emph}2{#Prev} to {#Emph}3{#Prev}.",
+        flavorText = "The cauldron grows to hold more blessings.",
+        cost = { MixerHBoss = 1 }, -- Tears (Mourning Fields Guardian)
+        requires = "BoonStacker_Slot_Melee", -- Requires all slots unlocked
+        icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_blessing",
+    },
+    {
+        id = "BoonStacker_Stack_Limit_4",
+        name = "Expansion of Divine Capacity II",
+        description = "Increases the maximum number of Blessings that can occupy each ability slot from {#Emph}3{#Prev} to {#Emph}4{#Prev}.",
+        flavorText = "The boundaries of mortal power stretch further.",
+        cost = { MixerIBoss = 1 }, -- Zodiac Sand (Tartarus Guardian)
+        requires = "BoonStacker_Stack_Limit_3",
+        icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_blessing",
+    },
+    {
+        id = "BoonStacker_Stack_Unlimited",
+        name = "Transcendence of Divine Limits",
+        description = "Removes all limits on the number of Blessings that can occupy each ability slot. {#Emph}Stack without bounds.{#Prev}",
+        flavorText = "I will not quiet the thunder to hear the sea. Let them crash together.",
+        cost = { MixerQBoss = 1 }, -- Void Lens (Chaos/Final boss)
+        requires = "BoonStacker_Stack_Limit_4",
+        icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_blessing",
+    },
+}
+
+-- ============================================================================
+-- HELPER FUNCTIONS
+-- ============================================================================
+
+-- Build GameStateRequirements for a slot unlock
+local function BuildSlotRequirements(slotData)
+    local requirements = {}
+    
+    if slotData.requires then
+        table.insert(requirements, {
+            PathTrue = { "GameState", "WorldUpgrades", slotData.requires },
+        })
     end
-else
-    print("BoonStacker: Config table is nil!")
+    
+    return requirements
 end
 
-if useEasy then
-    unlockCost = {
-        PlantFMoly = 1, -- Moly
-    }
+-- Build GameStateRequirements for a stack limit upgrade
+local function BuildStackLimitRequirements(limitData)
+    local requirements = {}
+    
+    if limitData.requires then
+        table.insert(requirements, {
+            PathTrue = { "GameState", "WorldUpgrades", limitData.requires },
+        })
+    end
+    
+    return requirements
 end
 
+-- OnEnabled callback for slot unlocks
+local function OnSlotUnlocked(source, incantationId, slotName)
+    print("BoonStacker: Slot '" .. slotName .. "' unlocked via " .. source)
+    if BoonStacker and BoonStacker.RefreshLogic then
+        BoonStacker.RefreshLogic()
+    end
+end
+
+-- OnEnabled callback for stack limit upgrades
+local function OnStackLimitUpgraded(source, incantationId, newLimit)
+    local limitStr = newLimit and tostring(newLimit) or "unlimited"
+    print("BoonStacker: Stack limit upgraded to " .. limitStr .. " via " .. source)
+    -- No need to refresh logic, limits are checked dynamically
+end
+
+-- ============================================================================
+-- INCANTATION REGISTRATION
+-- ============================================================================
+
+-- Note: Backwards compatibility is automatic - users with old BoonStacker_Unlock
+-- are detected by BoonStacker.IsLegacyUser() and get full access without any migration
+
+-- Only register incantations if not skipped via config
 if not (config and config.SkipIncantations) then
-    Incantations.addIncantation({
-        Id = "BoonStacker_Unlock",
-        Name = "Superposition of Divine Favor",
-        Description = "Permits multiple Blessings to inhabit the same ability slot, removing the need to Replace them.",
-        FlavorText = "I will not quiet the thunder to hear the sea. Let them crash together.",
-        WorldUpgradeData = {
-            Icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
-            Cost = unlockCost,
-            GameStateRequirements = {
-                -- No special requirements other than resources for now
-            },
-            IncantationVoiceLines = {
-                {
-                    PreLineWait = 0.3,
-                    { Cue = "/VO/Melinoe_5611", Text = "{#Emph}Gods and Goddesses upon Olympus, fight!" },
+    
+    -- Register slot unlock incantations
+    for i, slotData in ipairs(slotProgression) do
+        local slotName = slotData.slot
+        Incantations.addIncantation({
+            Id = slotData.id,
+            Name = slotData.name,
+            Description = slotData.description,
+            FlavorText = slotData.flavorText,
+            WorldUpgradeData = {
+                Icon = slotData.icon,
+                Cost = slotData.cost,
+                GameStateRequirements = BuildSlotRequirements(slotData),
+                IncantationVoiceLines = {
+                    {
+                        PreLineWait = 0.3,
+                        { Cue = "/VO/Melinoe_5611", Text = "{#Emph}Gods and Goddesses upon Olympus, fight!" },
+                    },
                 },
             },
-        },
-        OnEnabled = function(source, incantationId)
-            if BoonStacker and BoonStacker.EnableLogic then
-                print("BoonStacker: Incantation enabled, activating logic.")
-                BoonStacker.EnableLogic()
-            else
-                print("BoonStacker: Incantation enabled, but logic not found!")
-            end
-
-            -- When we unlock the mod, we should reset the 'Disable' incantation history
-            -- so that it can be bought again (if the user previously disabled it).
-            if game.GameState and game.GameState.WorldUpgradesAdded then
-                game.GameState.WorldUpgradesAdded.BoonStacker_Disable = nil
-            end
-        end,
-        OnDisabled = function(source, incantationId)
-            if BoonStacker and BoonStacker.DisableLogic then
-                print("BoonStacker: Incantation disabled, deactivating logic.")
-                BoonStacker.DisableLogic()
-            else
-                print("BoonStacker: Incantation disabled, but logic not found!")
-            end
-        end,
-    })
-
-    Incantations.addIncantation({
-        Id = "BoonStacker_Disable",
-        Name = "Separation of Divine Favor",
-        Description = "Disables the boon stacking effect and refunds the resources used to unlock it.",
-        FlavorText = "Maybe you can have too much of a good thing.",
-        WorldUpgradeData = {
-            InheritFrom = { "DefaultMinorItem" },
-            Icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue", 
-            Cost = {
-                PlantFMoly = 1,
-            },
-            AlwaysRevealImmediately = true,
-            GameStateRequirements = {
-                 {
-                     PathTrue = { "GameState", "WorldUpgrades", "BoonStacker_Unlock" },
-                 },
-            },
-            IncantationVoiceLines = {
-                {
-                    PreLineWait = 0.3,
-                    { Cue = "/VO/Melinoe_1076", Text = "{#Emph}Kataskion aski!" },
+            OnEnabled = function(source, incantationId)
+                OnSlotUnlocked(source, incantationId, slotName)
+            end,
+        })
+        print("BoonStacker: Registered slot unlock incantation: " .. slotData.id)
+    end
+    
+    -- Register stack limit upgrade incantations
+    for i, limitData in ipairs(stackLimitProgression) do
+        local newLimit = nil
+        if limitData.id == "BoonStacker_Stack_Limit_3" then
+            newLimit = 3
+        elseif limitData.id == "BoonStacker_Stack_Limit_4" then
+            newLimit = 4
+        else
+            newLimit = nil -- unlimited
+        end
+        
+        Incantations.addIncantation({
+            Id = limitData.id,
+            Name = limitData.name,
+            Description = limitData.description,
+            FlavorText = limitData.flavorText,
+            WorldUpgradeData = {
+                Icon = limitData.icon,
+                Cost = limitData.cost,
+                GameStateRequirements = BuildStackLimitRequirements(limitData),
+                IncantationVoiceLines = {
+                    {
+                        PreLineWait = 0.3,
+                        { Cue = "/VO/Melinoe_4825", Text = "{#Emph}Boil, Tears of Sorrow, and return to your essential form." },
+                    },
                 },
             },
-        },
-        OnEnabled = function(source, incantationId)
-            -- Refund
-            for name, amount in pairs(unlockCost) do
-                game.AddResource(name, amount, "BoonStacker_Refund")
-            end
-            -- Refund the token cost as well
-            game.AddResource("PlantFMoly", 1, "BoonStacker_Refund")
-
-            -- Clear the unlock flag IMMEDIATELY to prevent race conditions if the game is saved/loaded
-            -- before the thread runs.
-            if game.GameState and game.GameState.WorldUpgrades then
-                game.GameState.WorldUpgrades.BoonStacker_Unlock = nil
-            end
-
-            -- Disable Logic
-            if BoonStacker and BoonStacker.DisableLogic then
-                print("BoonStacker: Disable Incantation enabled, deactivating logic.")
-                BoonStacker.DisableLogic()
-            end
-
-            -- Cleanup State
-            if game.GameState then
-                -- Reset this incantation so it can be used again if needed
-                -- We do this in a thread to ensure we don't interfere with the current frame's processing
-                -- and to ensure the game doesn't re-add flags immediately.
-                game.thread(function()
-                    game.wait(0.5) -- Wait longer to ensure processing completes
-                    
-                    if game.GameState.WorldUpgrades then
-                         -- Ensure cleared (already done above, but safe to repeat)
-                         game.GameState.WorldUpgrades.BoonStacker_Unlock = nil
-                         game.GameState.WorldUpgrades.BoonStacker_Disable = nil
-                    end
-                    
-                    if game.GameState.WorldUpgradesAdded then
-                         game.GameState.WorldUpgradesAdded.BoonStacker_Unlock = nil
-                         
-                         -- We leave BoonStacker_Disable in history to prevent it from reappearing
-                         -- until the user buys Unlock again.
-                    end
-                end)
-            end
-        end,
-    })
+            OnEnabled = function(source, incantationId)
+                OnStackLimitUpgraded(source, incantationId, newLimit)
+            end,
+        })
+        print("BoonStacker: Registered stack limit incantation: " .. limitData.id)
+    end
+    
+    print("BoonStacker: All incantations registered successfully!")
 end
