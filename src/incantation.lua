@@ -11,6 +11,7 @@ Incantations = mods['BlueRaja-IncantationsAPI']
 -- ============================================================================
 
 -- Slot unlock order (Magick first, Attack last)
+-- Costs are boss/guardian rewards in progression order
 local slotProgression = {
     { 
         id = "BoonStacker_Slot_Mana", 
@@ -19,7 +20,7 @@ local slotProgression = {
         name = "Layering of Mana Flows",
         description = "Permits multiple {#Emph}Magick Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
         flavorText = "Let the power flow through many channels at once.",
-        cost = { PlantFMoly = 1 }, -- Moly (Erebus hand pick)
+        cost = { MixerFBoss = 1 }, -- Cinder (Hecate/Erebus Guardian)
         requires = nil,
         icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
     },
@@ -30,7 +31,7 @@ local slotProgression = {
         name = "Layering of Swift Strides",
         description = "Permits multiple {#Emph}Sprint Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
         flavorText = "Run with the speed of many gods.",
-        cost = { OreFSilver = 1 }, -- Silver (Erebus mining)
+        cost = { MixerGBoss = 1 }, -- Pearl (Scylla/Oceanus Guardian)
         requires = "BoonStacker_Slot_Mana",
         icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
     },
@@ -41,7 +42,7 @@ local slotProgression = {
         name = "Layering of Distant Stars",
         description = "Permits multiple {#Emph}Cast Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
         flavorText = "Cast forth the light of many heavens.",
-        cost = { PlantGLotus = 1 }, -- Lotus (Oceanus hand pick)
+        cost = { MixerNBoss = 1 }, -- Wool (City of Ephyra Guardian)
         requires = "BoonStacker_Slot_Rush",
         icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
     },
@@ -52,7 +53,7 @@ local slotProgression = {
         name = "Layering of Hidden Arts",
         description = "Permits multiple {#Emph}Special Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
         flavorText = "Master the secret techniques of the divine.",
-        cost = { OreGLime = 1 }, -- Limestone (Oceanus mining)
+        cost = { MixerHBoss = 1 }, -- Tears (Mourning Fields Guardian)
         requires = "BoonStacker_Slot_Ranged",
         icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
     },
@@ -63,20 +64,21 @@ local slotProgression = {
         name = "Layering of Raw Force",
         description = "Permits multiple {#Emph}Attack Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
         flavorText = "Strike with the fury of all Olympus combined.",
-        cost = { PlantHMyrtle = 1 }, -- Myrtle (Mourning Fields hand pick)
+        cost = { MixerOBoss = 1 }, -- Golden Apple (Rift of Thessaly Guardian)
         requires = "BoonStacker_Slot_Secondary",
         icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_statue",
     },
 }
 
 -- Stack limit upgrades (2 -> 3 -> 4 -> unlimited)
+-- Uses later-game boss drops that aren't used for slot unlocks
 local stackLimitProgression = {
     {
         id = "BoonStacker_Stack_Limit_3",
         name = "Expansion of Divine Capacity I",
         description = "Increases the maximum number of Blessings that can occupy each ability slot from {#Emph}2{#Prev} to {#Emph}3{#Prev}.",
         flavorText = "The cauldron grows to hold more blessings.",
-        cost = { MixerHBoss = 1 }, -- Tears (Mourning Fields Guardian)
+        cost = { MixerPBoss = 1 }, -- Eagle's Feather
         requires = "BoonStacker_Slot_Melee", -- Requires all slots unlocked
         icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_blessing",
     },
@@ -85,7 +87,7 @@ local stackLimitProgression = {
         name = "Expansion of Divine Capacity II",
         description = "Increases the maximum number of Blessings that can occupy each ability slot from {#Emph}3{#Prev} to {#Emph}4{#Prev}.",
         flavorText = "The boundaries of mortal power stretch further.",
-        cost = { MixerIBoss = 1 }, -- Zodiac Sand (Tartarus Guardian)
+        cost = { MixerIBoss = 1 }, -- Zodiac Sand (Chronos/Tartarus Guardian)
         requires = "BoonStacker_Stack_Limit_3",
         icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_blessing",
     },
