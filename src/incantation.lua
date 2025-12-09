@@ -81,7 +81,7 @@ local stackLimitProgression = {
         cost = { MixerPBoss = 1 }, -- Eagle's Feather
         requires = nil, -- No prerequisite
 
-        icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_blessing",
+        icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_melcurse",
     },
     {
         id = "BoonStacker_Stack_Limit_4",
@@ -90,7 +90,7 @@ local stackLimitProgression = {
         flavorText = "The boundaries of mortal power stretch further.",
         cost = { MixerIBoss = 1 }, -- Zodiac Sand (Chronos/Tartarus Guardian)
         requires = "BoonStacker_Stack_Limit_3",
-        icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_blessing",
+        icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_melcurse",
     },
     {
         id = "BoonStacker_Stack_Unlimited",
@@ -99,7 +99,7 @@ local stackLimitProgression = {
         flavorText = "I will not quiet the thunder to hear the sea. Let them crash together.",
         cost = { MixerQBoss = 1 }, -- Void Lens (Chaos/Final boss)
         requires = "BoonStacker_Stack_Limit_4",
-        icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_blessing",
+        icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_melcurse",
     },
 }
 
@@ -191,7 +191,7 @@ if not (config and config.SkipIncantations) then
                 IncantationVoiceLines = {
                     {
                         PreLineWait = 0.3,
-                        { Cue = "/VO/Melinoe_5611", Text = "{#Emph}Gods and Goddesses upon Olympus, fight!" },
+                        { Cue = "/VO/Melinoe_1075", Text = "{#Emph}By blood and darkness, let my will be done!" },
                     },
                 },
             },
