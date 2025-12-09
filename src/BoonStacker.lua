@@ -93,6 +93,10 @@ end
 
 -- Check if user has the legacy unlock (old single incantation system)
 function public.BoonStacker.IsLegacyUser()
+    -- If migration completed, treat as non-legacy even if old flag exists
+    if public.BoonStacker.HasLegacyMigration() then
+        return false
+    end
     if game.GameState and game.GameState.WorldUpgrades and game.GameState.WorldUpgrades.BoonStacker_Unlock then
         return true
     end
@@ -105,6 +109,27 @@ function public.BoonStacker.HasLegacyMigration()
         return true
     end
     return false
+end
+
+-- Check if user has the old legacy unlock flag (regardless of migration status)
+-- Used by migration incantation to determine visibility
+function public.BoonStacker.HasOldLegacyUnlock()
+    if game.GameState and game.GameState.WorldUpgrades and game.GameState.WorldUpgrades.BoonStacker_Unlock then
+        return true
+    end
+    return false
+end
+
+-- Perform migration from legacy system to new progression system
+function public.BoonStacker.PerformLegacyMigration()
+    if game.GameState and game.GameState.WorldUpgrades then
+        -- Set migration flag
+        game.GameState.WorldUpgrades.BoonStacker_Legacy_Migration = true
+        -- Note: We keep BoonStacker_Unlock for historical record, IsLegacyUser() now checks migration flag first
+        -- Refresh logic to use new progression state
+        public.BoonStacker.RefreshLogic()
+        print("BoonStacker: Legacy migration completed - new progression system now active")
+    end
 end
 
 -- Check if a specific slot is unlocked for stacking
