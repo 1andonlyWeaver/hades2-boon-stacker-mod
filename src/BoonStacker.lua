@@ -227,8 +227,13 @@ function public.BoonStacker.EnableLogic()
     print("BoonStacker: Enabling Logic for " .. #unlockedSlots .. " unlocked slots")
     
     for name, trait in pairs(game.TraitData) do
-        if trait.Slot and game.Contains(unlockedSlots, trait.Slot) then
-            trait.OriginalSlot = trait.Slot
+        local slot = trait.Slot or trait.OriginalSlot
+        if slot and game.Contains(unlockedSlots, slot) then
+            -- Only set OriginalSlot if not already set (avoid overwriting)
+            if not trait.OriginalSlot then
+                trait.OriginalSlot = trait.Slot
+            end
+            -- Clear Slot to enable stacking
             trait.Slot = nil
         end
     end
@@ -332,31 +337,38 @@ local function CalculateWeightsForOptions(options, slotCounts, logPrefix)
     
     for i, option in ipairs(options) do
         local weight = 1.0  -- default weight (no penalty)
-        local traitName = option.ItemName or option
-        local traitData = game.TraitData[traitName]
-        local slotName = nil
         
-        if traitData then
-            local slot = traitData.Slot or traitData.OriginalSlot
-            slotName = slot
-            if slot and slotCounts[slot] and slotCounts[slot] > 0 then
-                -- Check if we can stack more in this slot
-                if not public.BoonStacker.CanStackMore(slot) then
-                    -- At limit, set weight to 0 to exclude
-                    weight = 0
-                    hasAnyPenalty = true
-                else
-                    -- Calculate weight: 1 / (1 + (count * scalar))
-                    weight = 1.0 / (1 + (slotCounts[slot] * scalar))
-                    hasAnyPenalty = true
+        -- Guard against nil options
+        if option == nil then
+            weights[i] = weight
+            print("  " .. i .. ". [nil option] -> weight: 1.000")
+        else
+            local traitName = option.ItemName or option
+            local traitData = traitName and game.TraitData[traitName]
+            local slotName = nil
+            
+            if traitData then
+                local slot = traitData.Slot or traitData.OriginalSlot
+                slotName = slot
+                if slot and slotCounts[slot] and slotCounts[slot] > 0 then
+                    -- Check if we can stack more in this slot
+                    if not public.BoonStacker.CanStackMore(slot) then
+                        -- At limit, set weight to 0 to exclude
+                        weight = 0
+                        hasAnyPenalty = true
+                    else
+                        -- Calculate weight: 1 / (1 + (count * scalar))
+                        weight = 1.0 / (1 + (slotCounts[slot] * scalar))
+                        hasAnyPenalty = true
+                    end
                 end
             end
+            weights[i] = weight
+            local slotStr = slotName or "none"
+            local penaltyStr = (weight < 1.0) and " [PENALIZED]" or ""
+            if weight == 0 then penaltyStr = " [EXCLUDED - AT LIMIT]" end
+            print("  " .. i .. ". " .. tostring(traitName) .. " (slot: " .. slotStr .. ") -> weight: " .. string.format("%.3f", weight) .. penaltyStr)
         end
-        weights[i] = weight
-        local slotStr = slotName or "none"
-        local penaltyStr = (weight < 1.0) and " [PENALIZED]" or ""
-        if weight == 0 then penaltyStr = " [EXCLUDED - AT LIMIT]" end
-        print("  " .. i .. ". " .. tostring(traitName) .. " (slot: " .. slotStr .. ") -> weight: " .. string.format("%.3f", weight) .. penaltyStr)
     end
     
     return weights, hasAnyPenalty
