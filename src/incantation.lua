@@ -17,8 +17,8 @@ local slotProgression = {
         id = "BoonStacker_Slot_Mana", 
         slot = "Mana", 
         displayName = "Magick",
-        name = "Layering of Mana Flows",
-        description = "Permits multiple {#Emph}Magick Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
+        name = "Superposition of Essence",
+        description = "Permits multiple {#Emph}Magick Blessings {#Prev}to inhabit the same ability slot, removing the need to Replace them.",
         flavorText = "Let the power flow through many channels at once.",
         cost = { MixerFBoss = 1 }, -- Cinder (Hecate/Erebus Guardian)
         requires = nil,
@@ -28,8 +28,8 @@ local slotProgression = {
         id = "BoonStacker_Slot_Rush", 
         slot = "Rush", 
         displayName = "Sprint",
-        name = "Layering of Swift Strides",
-        description = "Permits multiple {#Emph}Sprint Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
+        name = "Superposition of Momentum",
+        description = "Permits multiple {#Emph}Sprint Blessings {#Prev}to inhabit the same ability slot, removing the need to Replace them.",
         flavorText = "Run with the speed of many gods.",
         cost = { MixerGBoss = 1 }, -- Pearl (Scylla/Oceanus Guardian)
         requires = nil,
@@ -39,8 +39,8 @@ local slotProgression = {
         id = "BoonStacker_Slot_Ranged", 
         slot = "Ranged", 
         displayName = "Cast",
-        name = "Layering of Distant Stars",
-        description = "Permits multiple {#Emph}Cast Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
+        name = "Superposition of Binding",
+        description = "Permits multiple {#Emph}Cast Blessings {#Prev}to inhabit the same ability slot, removing the need to Replace them.",
         flavorText = "Cast forth the light of many heavens.",
         cost = { MixerNBoss = 1 }, -- Wool (City of Ephyra Guardian)
         requires = nil,
@@ -50,8 +50,8 @@ local slotProgression = {
         id = "BoonStacker_Slot_Secondary", 
         slot = "Secondary", 
         displayName = "Special",
-        name = "Layering of Hidden Arts",
-        description = "Permits multiple {#Emph}Special Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
+        name = "Superposition of Finesse",
+        description = "Permits multiple {#Emph}Special Blessings {#Prev}to inhabit the same ability slot, removing the need to Replace them.",
         flavorText = "Master the secret techniques of the divine.",
         cost = { MixerHBoss = 1 }, -- Tears (Mourning Fields Guardian)
         requires = nil,
@@ -61,8 +61,8 @@ local slotProgression = {
         id = "BoonStacker_Slot_Melee", 
         slot = "Melee", 
         displayName = "Attack",
-        name = "Layering of Raw Force",
-        description = "Permits multiple {#Emph}Attack Blessings{#Prev} to inhabit the same ability slot, removing the need to Replace them.",
+        name = "Superposition of Ferocity",
+        description = "Permits multiple {#Emph}Attack Blessings {#Prev}to inhabit the same ability slot, removing the need to Replace them.",
         flavorText = "Strike with the fury of all Olympus combined.",
         cost = { MixerOBoss = 1 }, -- Golden Apple (Rift of Thessaly Guardian)
         requires = nil,
@@ -75,8 +75,8 @@ local slotProgression = {
 local stackLimitProgression = {
     {
         id = "BoonStacker_Stack_Limit_3",
-        name = "Expansion of Divine Capacity I",
-        description = "Increases the maximum number of Blessings that can occupy each ability slot from {#Emph}2{#Prev} to {#Emph}3{#Prev}.",
+        name = "Rite of Triple Capacity",
+        description = "Increases the maximum number of Blessings that can occupy each ability slot from {#Emph}2 {#Prev}to {#Emph}3{#Prev}.",
         flavorText = "The cauldron grows to hold more blessings.",
         cost = { MixerPBoss = 1 }, -- Eagle's Feather
         requires = nil, -- No prerequisite
@@ -85,8 +85,8 @@ local stackLimitProgression = {
     },
     {
         id = "BoonStacker_Stack_Limit_4",
-        name = "Expansion of Divine Capacity II",
-        description = "Increases the maximum number of Blessings that can occupy each ability slot from {#Emph}3{#Prev} to {#Emph}4{#Prev}.",
+        name = "Rite of Quadruple Capacity",
+        description = "Increases the maximum number of Blessings that can occupy each ability slot from {#Emph}3 {#Prev}to {#Emph}4{#Prev}.",
         flavorText = "The boundaries of mortal power stretch further.",
         cost = { MixerIBoss = 1 }, -- Zodiac Sand (Chronos/Tartarus Guardian)
         requires = "BoonStacker_Stack_Limit_3",
@@ -94,8 +94,8 @@ local stackLimitProgression = {
     },
     {
         id = "BoonStacker_Stack_Unlimited",
-        name = "Transcendence of Divine Limits",
-        description = "Removes all limits on the number of Blessings that can occupy each ability slot. {#Emph}Stack without bounds.{#Prev}",
+        name = "Rite of Infinite Capacity",
+        description = "Removes all limits on the number of Blessings that can occupy each ability slot. {#Emph}Stack without bounds. {#Prev}",
         flavorText = "I will not quiet the thunder to hear the sea. Let them crash together.",
         cost = { MixerQBoss = 1 }, -- Void Lens (Chaos/Final boss)
         requires = "BoonStacker_Stack_Limit_4",
