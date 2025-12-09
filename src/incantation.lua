@@ -245,8 +245,8 @@ if not (config and config.SkipIncantations) then
     local migrationData = {
         id = "BoonStacker_Legacy_To_Progression",
         name = "Reformation of Divine Channels",
-        description = "Relinquish your mastery over {#Emph}all ability slots{#Prev} to experience the {#Emph}new progression system{#Prev}. You will need to unlock each slot individually through the Cauldron.",
-        flavorText = "Sometimes one must unlearn before learning anew.",
+        description = "Relinquish your mastery over {#Emph}all ability slots {#Prev}to experience the {#Emph}new Boon Stacker progression system {#Prev}. You will need to unlock each slot individually through the Cauldron. {#Emph}New incantations appear after starting a new Night.{#Prev}",
+        flavorText = "The waters of Lethe wash clean the channels of power, that they might be filled anew.",
         cost = { PlantFMoly = 1 },
         icon = "GUI\\Screens\\CriticalItemShop\\Icons\\cauldron_blessing",
     }
