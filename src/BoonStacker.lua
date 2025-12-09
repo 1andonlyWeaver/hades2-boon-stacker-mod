@@ -92,44 +92,12 @@ function public.BoonStacker.ShouldSkipIncantations()
 end
 
 -- Check if user has the legacy unlock (old single incantation system)
+-- Legacy users get everything unlocked by default
 function public.BoonStacker.IsLegacyUser()
-    -- If migration completed, treat as non-legacy even if old flag exists
-    if public.BoonStacker.HasLegacyMigration() then
-        return false
-    end
     if game.GameState and game.GameState.WorldUpgrades and game.GameState.WorldUpgrades.BoonStacker_Unlock then
         return true
     end
     return false
-end
-
--- Check if user has completed the legacy migration
-function public.BoonStacker.HasLegacyMigration()
-    if game.GameState and game.GameState.WorldUpgrades and game.GameState.WorldUpgrades.BoonStacker_Legacy_Migration then
-        return true
-    end
-    return false
-end
-
--- Check if user has the old legacy unlock flag (regardless of migration status)
--- Used by migration incantation to determine visibility
-function public.BoonStacker.HasOldLegacyUnlock()
-    if game.GameState and game.GameState.WorldUpgrades and game.GameState.WorldUpgrades.BoonStacker_Unlock then
-        return true
-    end
-    return false
-end
-
--- Perform migration from legacy system to new progression system
-function public.BoonStacker.PerformLegacyMigration()
-    if game.GameState and game.GameState.WorldUpgrades then
-        -- Set migration flag
-        game.GameState.WorldUpgrades.BoonStacker_Legacy_Migration = true
-        -- Note: We keep BoonStacker_Unlock for historical record, IsLegacyUser() now checks migration flag first
-        -- Refresh logic to use new progression state
-        public.BoonStacker.RefreshLogic()
-        print("BoonStacker: Legacy migration completed - new progression system now active")
-    end
 end
 
 -- Check if a specific slot is unlocked for stacking
@@ -140,7 +108,7 @@ function public.BoonStacker.IsSlotUnlocked(slotName)
     end
     
     -- Legacy users with migration have all slots unlocked
-    if public.BoonStacker.IsLegacyUser() or public.BoonStacker.HasLegacyMigration() then
+    if public.BoonStacker.IsLegacyUser() then
         return true
     end
     
@@ -169,7 +137,7 @@ function public.BoonStacker.IsUnlocked()
     if public.BoonStacker.ShouldSkipIncantations() then
         return true
     end
-    if public.BoonStacker.IsLegacyUser() or public.BoonStacker.HasLegacyMigration() then
+    if public.BoonStacker.IsLegacyUser() then
         return true
     end
     -- Check if any slot is unlocked
@@ -189,7 +157,7 @@ function public.BoonStacker.GetStackLimit()
     end
     
     -- Legacy users have unlimited
-    if public.BoonStacker.IsLegacyUser() or public.BoonStacker.HasLegacyMigration() then
+    if public.BoonStacker.IsLegacyUser() then
         return nil
     end
     
