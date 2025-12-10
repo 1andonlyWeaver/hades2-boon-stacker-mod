@@ -1,6 +1,6 @@
 {
     "name": "BoonStacker",
-    "version_number": "0.4.1",
+    "version_number": "0.5.0",
     "website_url": "",
     "description": "Allows players to stack boons in core slots (Attack, Special, Cast, Sprint, Magick) without replacing existing ones.",
     "dependencies": [
@@ -13,4 +13,3 @@
         "BlueRaja-IncantationsAPI-1.0.0"
     ]
 }
-

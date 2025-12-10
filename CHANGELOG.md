@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- **New Feature**: Progression System
+  - Replaced all-or-nothing unlock with individual slot unlocks.
+  - Five slot-specific incantations: Magick, Sprint, Cast, Special, Attack.
+  - Each requires different boss materials (Cinder, Pearl, Wool, Tears, Golden Apple).
+  - Incantations are hidden until you discover the required materials.
+- **New Feature**: Stack Limit Upgrades
+  - "Rite of Triple Capacity" (2→3 stacks) – requires Eagle's Feather.
+  - "Rite of Quadruple Capacity" (3→4 stacks) – requires Zodiac Sand.
+  - "Rite of Infinite Capacity" (unlimited) – requires Void Lens.
+- **Backwards Compatibility**: Existing saves with the old `BoonStacker_Unlock` retain full functionality.
+- **Improvements**:
+  - Renamed incantations with thematic names ("Superposition of...", "Rite of...").
+  - Improved flavor text for all incantations.
+  - Fixed incorrect voicelines in incantations.
+- **Configuration**:
+  - Deprecated `EasyUnlock` option (no longer used with new progression system).
+
 ## [0.4.1] - 2025-12-05
 
 - **Configuration**:
