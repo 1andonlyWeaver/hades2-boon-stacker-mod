@@ -4,33 +4,15 @@
 
 Ever found a perfect boon but didn't want to sacrifice the one you already had? With BoonStacker, you don't have to choose. Combine the might of multiple Olympians on a single move to create devastating synergies and unique builds that simply weren't possible before.
 
-> **Disclaimer**: This mod significantly alters the game's balance. Stacking multiple gods' effects on a single move can lead to extremely powerful combinations.
+This mod is integrated into the game's incantation system and allows for steady progression by gathering materials and performing incantations at the Crossroads Cauldron. Alternatively, set `SkipIncantations` to `true` in the config to unlock everything immediately.
 
-For players seeking a more "earned" progression, this mod is integrated into the game's incantation system. You can disable `EasyUnlock` in the config file to require endgame materials, treating it as a powerful mid-to-late game upgrade rather than a default capability.
+> **Disclaimer**: This mod significantly alters the game's balance. Stacking multiple gods' effects on a single move can lead to extremely powerful combinations.
 
 ## Features
 
 -   **Boon Stacking**: You can now accept new boons for your Attack, Special, Cast, Sprint, and Magick slots even if they are already filled. The new boon will be added alongside the existing one.
 -   **No Replacements**: "Swap" or "Replace" offers are disabled for these slots. You will simply add to your arsenal.
 -   **Probability Balancing**: To keep things somewhat grounded, the probability of finding a boon for a specific slot decreases slightly as you stack more boons into that slot.
-
-## Installation
-
-### Recommended: Mod Manager
-The easiest way to install is using a mod manager like [r2modman](https://hades2.thunderstore.io/package/ebkr/r2modman/) or the Thunderstore Mod Manager.
-
-### Manual Install
-If you prefer to install manually, ensure you have the following dependencies installed in your `Hades II/Content/Mods` directory (or equivalent):
-
-1.  [Hell2Modding](https://thunderstore.io/c/hades-ii/p/Hell2Modding/Hell2Modding/)
-2.  [LuaENVY](https://thunderstore.io/c/hades-ii/p/LuaENVY/ENVY/)
-3.  [Chalk](https://thunderstore.io/c/hades-ii/p/SGG_Modding/Chalk/)
-4.  [ReLoad](https://thunderstore.io/c/hades-ii/p/SGG_Modding/ReLoad/)
-5.  [SJSON](https://thunderstore.io/c/hades-ii/p/SGG_Modding/SJSON/)
-6.  [ModUtil](https://thunderstore.io/c/hades-ii/p/SGG_Modding/ModUtil/)
-7.  [IncantationsAPI](https://thunderstore.io/c/hades-ii/p/BlueRaja/IncantationsAPI/)
-
-Then, extract the `BoonStacker` folder into your `Mods` directory.
 
 ## How to Use
 
@@ -63,8 +45,24 @@ You can adjust the mod's behavior by editing `config.lua` (if manually installed
     -   **False**: Use the progression system via incantations (recommended for balanced play).
 -   `StackPenaltyScalar` (Default: `1.0`)
     -   Adjusts the probability penalty for finding stacked boons. Higher values make it harder to find 3rd/4th stacks. Set to `0.0` to disable.
--   `EasyUnlock` *(Deprecated)*
-    -   This option is no longer used. The new progression system has fixed costs.
+
+## Installation
+
+### Recommended: Mod Manager
+The easiest way to install is using a mod manager like [r2modman](https://hades2.thunderstore.io/package/ebkr/r2modman/) or the Thunderstore Mod Manager.
+
+### Manual Install
+If you prefer to install manually, ensure you have the following dependencies installed in your `Hades II/Content/Mods` directory (or equivalent):
+
+1.  [Hell2Modding](https://thunderstore.io/c/hades-ii/p/Hell2Modding/Hell2Modding/)
+2.  [LuaENVY](https://thunderstore.io/c/hades-ii/p/LuaENVY/ENVY/)
+3.  [Chalk](https://thunderstore.io/c/hades-ii/p/SGG_Modding/Chalk/)
+4.  [ReLoad](https://thunderstore.io/c/hades-ii/p/SGG_Modding/ReLoad/)
+5.  [SJSON](https://thunderstore.io/c/hades-ii/p/SGG_Modding/SJSON/)
+6.  [ModUtil](https://thunderstore.io/c/hades-ii/p/SGG_Modding/ModUtil/)
+7.  [IncantationsAPI](https://thunderstore.io/c/hades-ii/p/BlueRaja/IncantationsAPI/)
+
+Then, extract the `BoonStacker` folder into your `Mods` directory.
 
 ## Feedback
 
