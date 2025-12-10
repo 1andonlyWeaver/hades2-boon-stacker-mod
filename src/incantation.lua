@@ -191,7 +191,7 @@ if not (config and config.SkipIncantations) then
                 IncantationVoiceLines = {
                     {
                         PreLineWait = 0.3,
-                        { Cue = "/VO/Melinoe_1075", Text = "{#Emph}By blood and darkness, let my will be done!" },
+                        { Cue = "/VO/Melinoe_5611", Text = "{#Emph}Gods and Goddesses upon Olympus, fight!" },
                     },
                 },
             },
@@ -225,7 +225,7 @@ if not (config and config.SkipIncantations) then
                 IncantationVoiceLines = {
                     {
                         PreLineWait = 0.3,
-                        { Cue = "/VO/Melinoe_4825", Text = "{#Emph}Boil, Tears of Sorrow, and return to your essential form." },
+                        { Cue = "/VO/Melinoe_1075", Text = "{#Emph}By blood and darkness, let my will be done!" },
                     },
                 },
             },
