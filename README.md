@@ -4,15 +4,47 @@
 
 Ever found a perfect boon but didn't want to sacrifice the one you already had? With BoonStacker, you don't have to choose. Combine the might of multiple Olympians on a single move to create devastating synergies and unique builds that simply weren't possible before.
 
-> **Disclaimer**: This mod significantly alters the game's balance. Stacking multiple gods' effects on a single move can lead to extremely powerful combinations.
+This mod is integrated into the game's incantation system and allows for steady progression by gathering materials and performing incantations at the Crossroads Cauldron. Alternatively, set `SkipIncantations` to `true` in the config to unlock everything immediately.
 
-For players seeking a more "earned" progression, this mod is integrated into the game's incantation system. You can disable `EasyUnlock` in the config file to require endgame materials, treating it as a powerful mid-to-late game upgrade rather than a default capability.
+> **Disclaimer**: This mod significantly alters the game's balance. Stacking multiple gods' effects on a single move can lead to extremely powerful combinations.
 
 ## Features
 
 -   **Boon Stacking**: You can now accept new boons for your Attack, Special, Cast, Sprint, and Magick slots even if they are already filled. The new boon will be added alongside the existing one.
 -   **No Replacements**: "Swap" or "Replace" offers are disabled for these slots. You will simply add to your arsenal.
 -   **Probability Balancing**: To keep things somewhat grounded, the probability of finding a boon for a specific slot decreases slightly as you stack more boons into that slot.
+
+## How to Use
+
+By default, the mod uses a **progression system** unlocked through incantations at the Crossroads Cauldron.
+
+> **Want immediate access?** Set `SkipIncantations` to `true` in the configuration to bypass all incantations and enable full mod functionality (all slots, unlimited stacking) from the start.
+
+### Slot Unlocks
+Each slot can be unlocked independently using boss materials:
+-   **Superposition of Essence** (Magick) – 1 Cinder
+-   **Superposition of Momentum** (Sprint) – 1 Pearl
+-   **Superposition of Binding** (Cast) – 1 Wool
+-   **Superposition of Finesse** (Special) – 1 Tears
+-   **Superposition of Ferocity** (Attack) – 1 Golden Apple
+
+Incantations appear once you've discovered the required material.
+
+### Stack Limits
+By default, each unlocked slot allows **2 stacked boons**. You can increase this:
+-   **Rite of Triple Capacity** (2→3) – 1 Eagle's Feather
+-   **Rite of Quadruple Capacity** (3→4) – 1 Zodiac Sand
+-   **Rite of Infinite Capacity** (unlimited) – 1 Void Lens
+
+## Configuration
+
+You can adjust the mod's behavior by editing `config.lua` (if manually installed) or using the Config Editor in r2modman.
+
+-   `SkipIncantations` (Default: `false`)
+    -   **True**: Full mod functionality is active immediately—all slots unlocked, unlimited stacking. No incantations appear.
+    -   **False**: Use the progression system via incantations (recommended for balanced play).
+-   `StackPenaltyScalar` (Default: `1.0`)
+    -   Adjusts the probability penalty for finding stacked boons. Higher values make it harder to find 3rd/4th stacks. Set to `0.0` to disable.
 
 ## Installation
 
@@ -31,29 +63,6 @@ If you prefer to install manually, ensure you have the following dependencies in
 7.  [IncantationsAPI](https://thunderstore.io/c/hades-ii/p/BlueRaja/IncantationsAPI/)
 
 Then, extract the `BoonStacker` folder into your `Mods` directory.
-
-## How to Use
-
-By default, installing the mod does not enable its effects immediately. You must unlock it within the game at the Crossroads Cauldron.
-
-1.  **Superposition of Divine Favor**: Perform this incantation to enable Boon Stacking.
-    *   *Cost (Default)*: 1 Moly
-2.  **Separation of Divine Favor**: If you wish to disable the mod's effects and return to standard rules, perform this incantation. It will refund the materials used for the unlock.
-
-**Skip Incantations**: If you prefer to skip the incantation system and have the mod enabled by default, set `SkipIncantations` to `true` in the configuration.
-
-## Configuration
-
-You can adjust the mod's behavior by editing `config.lua` (if manually installed) or using the Config Editor in r2modman.
-
--   `EasyUnlock` (Default: `true`)
-    -   **True**: The incantation costs **1 Moly**. Useful for immediate access or testing.
-    -   **False**: The incantation costs **1 Zodiac Sand** and **1 Void Lens**. This setting is intended for a balanced playthrough where this ability is treated as a significant mid-game upgrade that must be earned.
--   `SkipIncantations` (Default: `false`)
-    -   **True**: The mod is active immediately upon loading the game. No incantations are required or shown in the cauldron.
-    -   **False**: You must unlock the mod via the incantation system.
--   `StackPenaltyScalar` (Default: `1.0`)
-    -   Adjusts the probability penalty for finding stacked boons. Higher values make it harder to find 3rd/4th stacks for the same slot. Set it to `0.0` for no penalization.
 
 ## Feedback
 
