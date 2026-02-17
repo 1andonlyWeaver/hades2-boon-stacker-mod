@@ -8,6 +8,7 @@ local config = {
   PrioritizeCast = false,
   PrioritizeSprint = false,
   PrioritizeMagick = false,
+  Debug = false,
 }
 
 local description = {
@@ -20,6 +21,7 @@ local description = {
   PrioritizeCast = "Include Cast boons in priority offers (guaranteed when slot is empty). Default: false (vanilla behavior).",
   PrioritizeSprint = "Include Sprint boons in priority offers (guaranteed when slot is empty). Default: false (vanilla behavior).",
   PrioritizeMagick = "Include Magick boons in priority offers (guaranteed when slot is empty). Default: false (vanilla behavior).",
+  Debug = "Enable verbose debug logging in the console. Default: false.",
 }
 
 return config, description
