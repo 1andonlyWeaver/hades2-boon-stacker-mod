@@ -5,7 +5,7 @@ schemaVersion = "0.0.1"
 [package]
 namespace = "1andonlyWeaver"
 name = "BoonStacker"
-versionNumber = "0.5.0"
+versionNumber = "0.5.1"
 description = "Allows players to stack boons in core slots (Attack, Special, Cast, Sprint, Magick) without replacing existing ones."
 websiteUrl = ""
 containsNsfwContent = false

@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-02-17
+
 ### Fixed
+
 - Fixed `StackPenaltyScalar` having no effect on boon offer probability.
 - Fixed Supplemental Hymn level bonus only applying cosmetically (now grants full stat boosts via trait reprocessing).
 - Fixed `StackPenaltyScalar` of 0 causing a divide-by-zero error.
@@ -16,9 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed stale `OriginalSlot` on trait data preventing re-enable after disable.
 
 ### Changed
+
 - Verbose logging is now gated behind a `Debug` config option (default: off).
 
 ### Improved
+
 - Removed redundant weight recalculation in `GetEligibleUpgrades`.
 - Removed dead code branch in `TraitUIRemove`.
 - Deduplicated incantation requirement builders.
@@ -102,7 +107,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Configuration**:
   - Added `config.lua` with options for `EasyUnlock` (recipe cost) and `StackPenaltyScalar` (probability balancing).
 
-[unreleased]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.5.0...HEAD
+[unreleased]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.5.1...HEAD
+[0.5.1]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.4.1...0.5.0
 [0.4.1]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.3.0...0.4.0
