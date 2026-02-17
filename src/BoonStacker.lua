@@ -708,12 +708,32 @@ function game.GetEligibleUpgrades( upgradeOptions, lootData, upgradeChoiceData )
         return eligibleOptions
     end
 
-    -- Use weighted selection to pick boons for the pool
-    local numToSelect = #eligibleOptions
-    print("BoonStacker:GetEligibleUpgrades - Applying weighted selection...")
-    local finalOptions = WeightedSelectWithoutReplacement(eligibleOptions, weights, numToSelect)
-    
-    print("BoonStacker:GetEligibleUpgrades - Weighted selection complete, " .. #finalOptions .. " options in final pool")
+    -- Probabilistic filter: each penalized boon has (weight) chance of staying in the pool
+    -- This actually reduces their probability of being offered, since the game picks
+    -- uniformly from the eligible pool via GetRandomValue()
+    local finalOptions = {}
+    local removedCount = 0
+    for i, option in ipairs(eligibleOptions) do
+        if weights[i] >= 1.0 then
+            table.insert(finalOptions, option)
+        else
+            if game.RandomNumber() < weights[i] then
+                table.insert(finalOptions, option)
+            else
+                removedCount = removedCount + 1
+            end
+        end
+    end
+
+    print("BoonStacker:GetEligibleUpgrades - Probabilistic filter removed " .. removedCount .. " of " .. #eligibleOptions .. " options, " .. #finalOptions .. " remain")
+
+    -- Safety net: if the pool is too small, fall back to the full list
+    -- to avoid starving the game of boon options
+    local minPoolSize = game.GetTotalLootChoices() or 3
+    if #finalOptions < minPoolSize and #eligibleOptions >= minPoolSize then
+        print("BoonStacker:GetEligibleUpgrades - Pool too small (" .. #finalOptions .. " < " .. minPoolSize .. "), falling back to full list")
+        return eligibleOptions
+    end
 
     return finalOptions
 end
