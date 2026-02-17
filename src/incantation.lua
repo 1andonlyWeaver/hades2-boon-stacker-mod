@@ -107,47 +107,25 @@ local stackLimitProgression = {
 -- HELPER FUNCTIONS
 -- ============================================================================
 
--- Build GameStateRequirements for a slot unlock
-local function BuildSlotRequirements(slotData)
+-- Build GameStateRequirements from any progression entry (slot unlock or stack limit)
+local function BuildRequirements(data)
     local requirements = {}
-    
-    -- Require that the player has discovered the material used for this incantation
-    for resourceId, _ in pairs(slotData.cost) do
-        table.insert(requirements, {
-            Path = { "GameState", "LifetimeResourcesGained", resourceId },
-            Comparison = ">=",
-            Value = 1,
-        })
-    end
-    
-    if slotData.requires then
-        table.insert(requirements, {
-            PathTrue = { "GameState", "WorldUpgrades", slotData.requires },
-        })
-    end
-    
-    return requirements
-end
 
--- Build GameStateRequirements for a stack limit upgrade
-local function BuildStackLimitRequirements(limitData)
-    local requirements = {}
-    
     -- Require that the player has discovered the material used for this incantation
-    for resourceId, _ in pairs(limitData.cost) do
+    for resourceId, _ in pairs(data.cost) do
         table.insert(requirements, {
             Path = { "GameState", "LifetimeResourcesGained", resourceId },
             Comparison = ">=",
             Value = 1,
         })
     end
-    
-    if limitData.requires then
+
+    if data.requires then
         table.insert(requirements, {
-            PathTrue = { "GameState", "WorldUpgrades", limitData.requires },
+            PathTrue = { "GameState", "WorldUpgrades", data.requires },
         })
     end
-    
+
     return requirements
 end
 
@@ -187,7 +165,7 @@ if not (config and config.SkipIncantations) then
             WorldUpgradeData = {
                 Icon = slotData.icon,
                 Cost = slotData.cost,
-                GameStateRequirements = BuildSlotRequirements(slotData),
+                GameStateRequirements = BuildRequirements(slotData),
                 IncantationVoiceLines = {
                     {
                         PreLineWait = 0.3,
@@ -221,7 +199,7 @@ if not (config and config.SkipIncantations) then
             WorldUpgradeData = {
                 Icon = limitData.icon,
                 Cost = limitData.cost,
-                GameStateRequirements = BuildStackLimitRequirements(limitData),
+                GameStateRequirements = BuildRequirements(limitData),
                 IncantationVoiceLines = {
                     {
                         PreLineWait = 0.3,
