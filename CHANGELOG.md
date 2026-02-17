@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Fixed `StackPenaltyScalar` having no effect on boon offer probability.
+- Fixed Supplemental Hymn level bonus only applying cosmetically (now grants full stat boosts via trait reprocessing).
+- Fixed `StackPenaltyScalar` of 0 causing a divide-by-zero error.
+- Fixed empty boon pool crash when probabilistic filter removes all options.
+- Fixed vanilla boon replacement being blocked for non-unlocked slots.
+- Fixed stale `OriginalSlot` on trait data preventing re-enable after disable.
+
+### Changed
+- Verbose logging is now gated behind a `Debug` config option (default: off).
+
+### Improved
+- Removed redundant weight recalculation in `GetEligibleUpgrades`.
+- Removed dead code branch in `TraitUIRemove`.
+- Deduplicated incantation requirement builders.
+
 ## [0.5.0] - 2025-12-10
 
 - **New Feature**: Progression System
