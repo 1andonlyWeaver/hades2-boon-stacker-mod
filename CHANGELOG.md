@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Verified compatible with Hades II Post-Launch Patch 2.
+
+## [0.5.1] - 2026-02-17
+
 ### Fixed
 - Fixed `StackPenaltyScalar` having no effect on boon offer probability.
 - Fixed Supplemental Hymn level bonus only applying cosmetically (now grants full stat boosts via trait reprocessing).
