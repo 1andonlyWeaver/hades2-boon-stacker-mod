@@ -1,5 +1,8 @@
 # For local development
 /Scripts/
+/.claude/
+/.idea/
+/CLAUDE.md
 
 # For files used only by a symlink to the ReturnOfModding plugins folder
 /src/LICENSE
