@@ -64,6 +64,10 @@ If you prefer to install manually, ensure you have the following dependencies in
 
 Then, extract the `BoonStacker` folder into your `Mods` directory.
 
+## AI Disclosure
+
+Portions of this mod's code and documentation were written with the help of AI coding tools. In line with [Thunderstore's rules](https://wiki.thunderstore.io/moderation/global-rules), the package is listed under the **AI Generated** category.
+
 ## Feedback
 
 Please submit bug reports and feature requests via the [GitHub Issue Tracker](https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/issues).
