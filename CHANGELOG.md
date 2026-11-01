@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Added the package to the Thunderstore `AI Generated` category and added an AI disclosure section to the README.
+
 ## [0.5.1] - 2026-02-17
 
 ### Fixed
