@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-11-01
+
 ### Changed
 - Verified compatible with Hades II Post-Launch Patch 2.
 - Added the package to the Thunderstore `AI Generated` category and added an AI disclosure section to the README.
@@ -111,7 +113,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Configuration**:
   - Added `config.lua` with options for `EasyUnlock` (recipe cost) and `StackPenaltyScalar` (probability balancing).
 
-[unreleased]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.5.1...HEAD
+[unreleased]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.5.2...HEAD
+[0.5.2]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.5.1...0.5.2
 [0.5.1]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.4.1...0.5.0
 [0.4.1]: https://github.com/1andonlyWeaver/hades2-boon-stacker-mod/compare/0.4.0...0.4.1
